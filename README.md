@@ -7,8 +7,17 @@ Asking an LLM to "summarize these interviews" gives you something fluent, confid
 unverifiable. This finds agreement and conflict instead of asserting them, and every claim
 carries a verbatim quote from a named person.
 
-**Start here:** [`example.py`](example.py) runs the whole thing and shows what consuming the
-output looks like · [`DATA_MODEL.md`](DATA_MODEL.md) describes every artifact it produces.
+**Just cloned this?** [`report.html`](report.html) is the finished output of a real run,
+committed to the repo. It is one self-contained HTML file — the matrix, the conflicts, the
+findings, and every quote linked to the transcript turn it came from. Open it in a browser:
+no API key, no install, no server.
+
+```bash
+open report.html
+```
+
+Then: [`example.py`](example.py) runs the whole thing and shows what consuming the output looks
+like · [`DATA_MODEL.md`](DATA_MODEL.md) describes every artifact it produces.
 
 ---
 
@@ -59,7 +68,7 @@ re-run, inspected, or replaced on its own.
 | **structure** | `raw/*.docx` | sectioned transcripts, every turn + speaker | `structured/<section>/<person>.md` |
 | **pass 1** `context-pass` | `structured/` | profiles + the canonical question list | `out/first_pass_context.json` |
 | **pass 2** `code-pass` | `structured/` + the codebook | every answer labelled with a question | `out/coding.db` (SQLite) + `out/coding.jsonl` |
-| **pass 3** `synth-pass` | `out/coding.db` | the matrix, then agreement/conflict/findings | `out/synthesis.json` + tables in `out/coding.db` → `out/report.html` |
+| **pass 3** `synth-pass` | `out/coding.db` | the matrix, then agreement/conflict/findings | `out/synthesis.json` + tables in `out/coding.db` → `report.html` |
 
 ```
 raw/*.docx
@@ -78,7 +87,8 @@ structured/<section>/<person>.md
     └─▶ PASS 3  chart the matrix (Python), then interpret it (model)
            out/synthesis.json          (583 KB) the whole document
            out/coding.db               matrix + synthesis tables, queryable
-           out/report.html             (356 KB) self-contained, opens anywhere
+           report.html                 (356 KB) self-contained, at the repo root
+                                       so it can be opened or emailed as-is
 ```
 
 Two supporting directories: `out/stages/` holds every individual call's result so a crash never
@@ -303,7 +313,8 @@ Five decisions, each with a cost:
 Click a row for the full comparison — canonical quote, conflicts, every quote linking to its
 source turn. Plus a findings feed, a per-person view, and the transcript underneath.
 
-`uv run synthesize` writes `out/report.html`.
+`uv run synthesize` writes [`report.html`](report.html) at the repo root. The copy in this
+repo is from a real run — open it directly, nothing to install.
 
 **What it is not:** a product. It exists to prove the data model is navigable — that every
 object is addressable and every claim walks back to a transcript turn. Those ids are stable
@@ -336,7 +347,7 @@ find what actually breaks; fix the output ceiling; Batch API halves the cost; ch
 the mechanical stages; a UI that opens on "the 10 topics where people disagree most" rather than
 a 1,000-row grid.
 
-**5. An output UI that fits the existing UX** — `out/report.html` is a prototype I built to
+**5. An output UI that fits the existing UX** — `report.html` is a prototype I built to
 prove the data model is navigable, not a product. The real version has to live inside whatever
 interface people already use, which changes the shape of the problem: the synthesis becomes an
 API rather than a document, objects need to survive being embedded in someone else's page, and
@@ -399,7 +410,7 @@ Three things make it more than a summarizer:
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...     # or put it in .env
 
-uv run synthesize                       # everything → out/report.html, opens it
+uv run synthesize                       # everything → report.html, opens it
 uv run synthesize --dry-run             # the plan and the cost, spending nothing
 uv run pytest                           # 119 tests, no tokens
 ```
@@ -413,6 +424,10 @@ uv run python example.py --dry-run     # the plan and the cost, spending nothing
 uv run python example.py               # run it, then print who was interviewed,
                                        # where they disagree, and the findings
 ```
+
+`synth-pass --report-only` rebuilds `report.html` from the committed `out/synthesis.json` with
+no model calls — the way to refresh the checked-in report, or to view a synthesis someone else
+produced.
 
 Each pass also runs alone (`context-pass`, `code-pass`, `synth-pass`) and takes `--dry-run`.
 Results cache per stage, so a rerun after a prompt change re-runs only what it affected.
@@ -438,6 +453,7 @@ src/interview_synthesis/
   synthesis/             pass 3 — framework matrix + interpretation
   ui/index.html          the report template, shipped in the wheel
 
+report.html               the committed output of a real run — open it in a browser
 example.py                annotated end-to-end run, and how to read the output
 DATA_MODEL.md             every artifact: models, SQLite schema, id scheme, guarantees
 

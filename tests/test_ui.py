@@ -16,7 +16,7 @@ from interview_synthesis import paths
 ROOT = Path(__file__).resolve().parent.parent
 UI = paths.ui_template()                 # ships inside the package
 SYNTH = ROOT / "out/synthesis.json"
-REPORT = ROOT / "out/report.html"
+REPORT = ROOT / "report.html"
 
 pytestmark = pytest.mark.skipif(
     not (UI.exists() and SYNTH.exists() and shutil.which("node")),
@@ -122,7 +122,7 @@ def test_nothing_leaks_undefined_into_the_page(rendered):
 
 # --------------------------- the built report ---------------------------
 
-REPORT = ROOT / "out/report.html"
+REPORT = ROOT / "report.html"
 
 # Renders the built page the way a browser would: run each inline <script> in order,
 # with fetch rigged to throw so any reintroduced network dependency fails loudly.
@@ -151,7 +151,7 @@ console.log(JSON.stringify({
 
 @pytest.fixture(scope="module")
 def report(tmp_path_factory):
-    assert REPORT.exists(), "synthesize / synth-pass should have built out/report.html"
+    assert REPORT.exists(), "synthesize / synth-pass should have built report.html"
     harness = tmp_path_factory.mktemp("report") / "h.cjs"
     harness.write_text(REPORT_HARNESS)
     result = subprocess.run(

@@ -51,6 +51,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fail-fast", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--stats", action="store_true")
+    parser.add_argument(
+        "--report-only",
+        action="store_true",
+        help="Rebuild report.html from an existing out/synthesis.json. No model calls, "
+        "no API key needed - use this to view a synthesis someone else produced.",
+    )
     return parser
 
 
@@ -84,6 +90,18 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.stats:
         return _stats(args.out)
+
+    if args.report_only:
+        # The committed synthesis.json is enough to rebuild the page, so anyone who clones
+        # the repo can see the output without credentials or spend.
+        if not args.out.exists():
+            print(f"no synthesis at {args.out}", file=sys.stderr)
+            return 2
+        report = paths.workspace() / "report.html"
+        built = synth_report.build(args.out, paths.ui_template(), report)
+        print(f"wrote {built['path']}  ({built['bytes'] // 1024} KB, "
+              f"{built['interviewees']} interviewees, {built['findings']} findings)")
+        return 0
 
     for path, what in ((args.db, "coding database"), (args.first_pass, "first pass")):
         if not path.exists():
@@ -172,7 +190,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"wrote:     {args.out}")
     print(f"           {args.db}  ({written['cells']} cells, "
           f"{written['synthesis_objects']} synthesis objects)")
-    built = synth_report.build(args.out, paths.ui_template(), paths.out_dir() / "report.html")
+    built = synth_report.build(args.out, paths.ui_template(), paths.workspace() / "report.html")
     print(f"           {built['path']}  ({built['bytes'] // 1024}KB, self-contained)")
     return 0
 

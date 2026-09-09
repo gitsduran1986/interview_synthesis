@@ -57,7 +57,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dry-run", action="store_true", help="Plan and price it, spend nothing.")
     parser.add_argument("--skip-structure", action="store_true")
     parser.add_argument("--no-cache", action="store_true")
-    parser.add_argument("--report", type=Path, default=paths.out_dir() / "report.html")
+    parser.add_argument("--report", type=Path, default=paths.workspace() / "report.html")
     parser.add_argument("--no-open", action="store_true", help="Build the page but don't open it.")
     args = parser.parse_args(argv)
 

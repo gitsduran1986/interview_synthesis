@@ -163,7 +163,7 @@ def show_results() -> None:
     audit = context.evidence_audit
     print(f"\n  pass 1: {audit.verified}/{audit.total} quotes verified verbatim")
 
-    report = paths.out_dir() / "report.html"
+    report = paths.workspace() / "report.html"
     if report.exists():
         print(f"\n  Open the full report:  {report}")
 

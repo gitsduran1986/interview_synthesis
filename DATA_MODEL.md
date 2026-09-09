@@ -28,7 +28,7 @@ raw/*.docx
                                     ▼
                    PASS 3 ─▶ out/synthesis.json           the matrix + the reading of it
                              out/coding.db (more tables)
-                             out/report.html              self-contained UI
+                             report.html                  self-contained UI (repo root)
 ```
 
 Every arrow is a file on disk. A pass reads what the previous one wrote and nothing else, so
