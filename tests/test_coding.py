@@ -11,10 +11,13 @@ from pydantic_ai import Agent, ModelRetry
 from pydantic_ai.messages import ModelResponse, ToolCallPart
 from pydantic_ai.models.function import FunctionModel
 
-from context_pass.corpus import Turn, Unit
-from context_pass.models import FirstPassContext
-from coding import codebook as codebook_mod
-from coding import coder, ingest, pipeline, store
+from interview_synthesis.corpus import Turn, Unit
+from interview_synthesis.context.models import FirstPassContext
+from interview_synthesis.coding import codebook as codebook_mod
+from interview_synthesis.coding import coder
+from interview_synthesis.coding import ingest
+from interview_synthesis.coding import pipeline
+from interview_synthesis.coding import store
 
 ROOT = Path(__file__).resolve().parent.parent
 FIRST_PASS = ROOT / "out/first_pass_context.json"
@@ -49,9 +52,21 @@ def test_codebook_carries_every_question(codebook):
     assert len(codebook.questions) == len(expected)
 
 
-def test_codebook_is_a_small_fraction_of_the_first_pass(codebook):
-    whole = len(FIRST_PASS.read_text())
-    assert len(codebook.model_dump_json()) < whole * 0.15
+def test_codebook_carries_the_label_space_and_nothing_else(codebook):
+    """The contract is what the codebook contains, not how small it is.
+
+    It used to be a tiny slice because pass 1 also emitted themes. Pass 1 has since been cut
+    down to what is actually read, so a size ratio no longer means anything - but the coder
+    must still see only the label space and the anchors, never profiles or evidence.
+    """
+    payload = json.loads(codebook.model_dump_json())
+    assert set(payload) == {
+        "schema_version", "generated_at", "source", "corpus_digest", "questions", "anchors",
+    }
+    assert set(payload["questions"][0]) == {"question_id", "section_id", "canonical_question"}
+    blob = json.dumps(payload)
+    for leaked in ("credentials", "platform_experience", "ui_statement", "background", "quote"):
+        assert leaked not in blob
 
 
 def test_codebook_digest_is_stable_and_content_sensitive(codebook):
@@ -62,7 +77,7 @@ def test_codebook_digest_is_stable_and_content_sensitive(codebook):
 
 
 def test_question_ids_match_their_section(codebook):
-    from context_pass.sections import section_number
+    from interview_synthesis.sections import section_number
 
     for q in codebook.questions:
         assert q.question_id.split("-")[1] == section_number(q.section_id)
@@ -396,8 +411,8 @@ def test_model_prompt_never_contains_anchors(codebook, corpus):
 
 
 def test_timestamp_join_codes_the_anchored_turns(corpus, codebook):
-    from coding import timestamp as ts
-    from coding.ingest import text_id
+    from interview_synthesis.coding import timestamp as ts
+    from interview_synthesis.coding.ingest import text_id
 
     unit = corpus.by_path("structured/06-cost-total-cost-of-ownership/expert-1.md")
     result = ts.code_unit(unit, codebook, text_id)
@@ -415,8 +430,8 @@ def test_span_fill_reaches_full_coverage_but_marks_the_inference(corpus, codeboo
     Asserted across the corpus rather than one file, because which turns lack an anchor
     depends on the pass-1 run.
     """
-    from coding import timestamp as ts
-    from coding.ingest import text_id
+    from interview_synthesis.coding import timestamp as ts
+    from interview_synthesis.coding.ingest import text_id
 
     plain_coded = filled_coded = expert_turns = 0
     methods: set[str] = set()
@@ -439,9 +454,9 @@ def test_span_fill_reaches_full_coverage_but_marks_the_inference(corpus, codeboo
 
 def test_unresolvable_anchor_is_reported_not_silently_dropped(corpus, codebook):
     """A bad timestamp from pass 1 must not make a question's answer vanish quietly."""
-    from coding import timestamp as ts
-    from coding.codebook import Anchor
-    from coding.ingest import text_id
+    from interview_synthesis.coding import timestamp as ts
+    from interview_synthesis.coding.codebook import Anchor
+    from interview_synthesis.coding.ingest import text_id
 
     unit = corpus.by_path("structured/06-cost-total-cost-of-ownership/expert-1.md")
     broken = codebook.model_copy(deep=True)
@@ -458,7 +473,7 @@ def test_unresolvable_anchor_is_reported_not_silently_dropped(corpus, codebook):
 
 
 def test_ambiguous_timestamp_is_skipped_rather_than_coin_flipped(corpus, codebook):
-    from coding.codebook import Anchor
+    from interview_synthesis.coding.codebook import Anchor
 
     unit = corpus.by_path("structured/06-cost-total-cost-of-ownership/expert-1.md")
     anchored = next(iter(codebook.anchors_for(unit.expert_slug, unit.section_slug)))
@@ -481,8 +496,8 @@ def test_every_anchored_disfluency_turn_is_flagged(corpus, codebook):
     How many such anchors exist depends on the pass-1 run, so asserting a number would make
     this test fail on a legitimate re-run.
     """
-    from coding import timestamp as ts
-    from coding.ingest import text_id
+    from interview_synthesis.coding import timestamp as ts
+    from interview_synthesis.coding.ingest import text_id
 
     for unit in corpus.units:
         if unit.section_slug == "01-interview-introduction":
@@ -499,7 +514,7 @@ def test_every_anchored_disfluency_turn_is_flagged(corpus, codebook):
 
 
 def test_is_disfluent_matches_process_talk_only():
-    from coding import timestamp as ts
+    from interview_synthesis.coding import timestamp as ts
 
     assert ts.is_disfluent("Can you repeat the question?")
     assert ts.is_disfluent("Sorry, can you repeat the question?")

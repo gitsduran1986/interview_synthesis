@@ -11,9 +11,12 @@ from pathlib import Path
 
 import pytest
 
+from interview_synthesis import paths
+
 ROOT = Path(__file__).resolve().parent.parent
-UI = ROOT / "ui/index.html"
+UI = paths.ui_template()                 # ships inside the package
 SYNTH = ROOT / "out/synthesis.json"
+REPORT = ROOT / "out/report.html"
 
 pytestmark = pytest.mark.skipif(
     not (UI.exists() and SYNTH.exists() and shutil.which("node")),
@@ -60,61 +63,9 @@ def doc():
     return json.loads(SYNTH.read_text())
 
 
-DATA_JS = ROOT / "ui/data.js"
-
-# Simulates opening ui/index.html straight off disk: load data.js the way the page's
-# <script src> tag does, then the page script, and assert it renders without any fetch.
-FILE_URL_HARNESS = r"""
-const fs = require('fs');
-const el = () => ({ hidden: false, innerHTML: '', textContent: '',
-  classList: { add(){}, remove(){}, toggle(){} }, addEventListener(){},
-  querySelectorAll: () => [], scrollIntoView(){}, children: [], dataset: {}, click(){} });
-const app = el(), stats = el();
-global.document = {
-  getElementById: id => (id === 'app' ? app : id === 'stats' ? stats : el()),
-  querySelectorAll: () => [], createElement: el, body: el(),
-};
-global.window = { scrollTo(){} };
-global.fetch = () => { throw new Error('fetch must not be used when data.js is present'); };
-// the <script src="data.js"> tag
-new Function('window', fs.readFileSync(process.argv[3], 'utf8'))(global.window);
-// the page script
-const js = fs.readFileSync(process.argv[2], 'utf8').match(/<script>([\s\S]*?)<\/script>/)[1];
-new Function(js)();
-console.log(JSON.stringify({
-  appShown: app.hidden === false, statsRendered: stats.innerHTML.length > 0,
-  stats: stats.innerHTML,
-}));
-"""
-
-
-def test_page_loads_its_data_with_no_server_and_no_upload(tmp_path):
-    """Opening ui/index.html from the filesystem must just work after a run.
-
-    file:// blocks fetch(), which is why the data is also emitted as ui/data.js — a
-    <script src> tag is not subject to that restriction.
-    """
-    assert DATA_JS.exists(), "synth-pass should have written ui/data.js"
-    assert DATA_JS.read_text(errors="ignore").startswith("window.SYNTHESIS =")
-
-    harness = tmp_path / "h.cjs"
-    harness.write_text(FILE_URL_HARNESS)
-    result = subprocess.run(
-        ["node", str(harness), str(UI), str(DATA_JS)],
-        capture_output=True, text=True, timeout=60,
-    )
-    assert result.returncode == 0, result.stderr
-    out = json.loads(result.stdout)
-    assert out["appShown"], "the app should render, not the drop zone"
-    assert out["statsRendered"]
-    assert "quotes verified" in out["stats"]
-
-
-def test_data_js_matches_the_json(doc):
-    raw = DATA_JS.read_text()
-    embedded = json.loads(raw[len("window.SYNTHESIS = "):].rstrip().rstrip(";"))
-    assert embedded["run"]["counts"] == doc["run"]["counts"]
-    assert len(embedded["cells"]) == len(doc["cells"])
+# The "loads with no server, no upload" guarantee now lives on the built report - see
+# test_report_renders_without_any_network below. The dev page's data.js was dropped when the
+# report became the artifact.
 
 
 def test_every_column_detail_renders(rendered):
@@ -245,7 +196,7 @@ def test_report_keeps_every_citation(report, doc):
 
 
 def test_report_drops_only_rows_nothing_points_at(report, doc):
-    from synthesis.report import view_payload
+    from interview_synthesis.synthesis.report import view_payload
 
     payload = view_payload(doc)
     assert report["grains"] == ["section", "thread"], "question-grain cells are unread"
@@ -269,7 +220,7 @@ def test_report_drops_only_rows_nothing_points_at(report, doc):
 
 
 def test_embed_cannot_break_out_of_the_script_tag():
-    from synthesis.report import embed
+    from interview_synthesis.synthesis.report import embed
 
     hostile = embed({"a": "</script><img onerror=x>", "b": "a b c"})
     assert "</script>" not in hostile
@@ -278,7 +229,7 @@ def test_embed_cannot_break_out_of_the_script_tag():
 
 def test_builder_fails_loudly_if_the_template_changes(tmp_path):
     """A silent no-op here would ship a report with no data in it."""
-    from synthesis import report as report_mod
+    from interview_synthesis.synthesis import report as report_mod
 
     template = tmp_path / "t.html"
     template.write_text("<html><body>no data tag here</body></html>")

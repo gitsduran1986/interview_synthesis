@@ -48,11 +48,9 @@
   tbody tr { border-top: 1px solid var(--line); cursor: pointer; }
   tbody tr:hover { background: #fff; }
   tbody tr.sel { background: #fff; box-shadow: inset 3px 0 0 var(--accent); }
-  td { padding: 11px 10px; vertical-align: top; }
-  td.topic { font-size: 14px; max-width: 330px; }
-  td.cell { width: 150px; }
-  .bar { height: 6px; border-radius: 3px; background: var(--bar); margin-bottom: 4px; }
-  .wc { font-size: 11px; color: var(--muted); }
+  td { padding: 12px 10px; vertical-align: top; }
+  td.topic { font-size: 14px; width: 250px; font-weight: 600; }
+  td.cell { font-size: 13px; line-height: 1.45; color: #46403a; }
   .none { font-size: 12px; color: #b3aca4; font-style: italic; }
   td.flag { width: 108px; text-align: right; font-size: 12px; white-space: nowrap; }
   .tag-conflict { color: var(--warn); font-weight: 600; }
@@ -174,6 +172,29 @@ const threads = () => DATA.columns.filter(c => c.grain === 'thread')
 const cellOf = (col, row) => DATA.cells.find(c =>
   c.grain === 'thread' && c.column_id === col && c.row_id === row);
 const synOf = id => DATA.columns_synthesis.find(s => s.column_id === id && s.grain === 'thread');
+
+/* One line per person per topic for the grid. These are not generated for the UI - they are
+   the `gist` the column synthesis already wrote for each position, so the matrix shows the
+   model's reading rather than a word count, at no extra cost and with nothing new to trust. */
+let GISTS = null;
+function gistFor(columnId, rowId) {
+  if (!GISTS) {
+    GISTS = {};
+    for (const s of DATA.columns_synthesis) {
+      const positions = [
+        ...s.agreements.flatMap(a => a.positions),
+        ...s.conflicts.flatMap(c => c.positions),
+        ...s.outliers,
+      ];
+      for (const p of positions) {
+        if (!p.gist) continue;
+        const key = s.column_id + '\u001f' + p.row_id;
+        if (!GISTS[key] || p.gist.length > GISTS[key].length) GISTS[key] = p.gist;
+      }
+    }
+  }
+  return GISTS[columnId + '\u001f' + rowId];
+}
 const rowOf = id => DATA.rows.find(r => r.row_id === id);
 const esc = s => (s ?? '').replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
 const sectionName = id => id.replace(/^\d+-/, '').replace(/-/g, ' ')
@@ -211,8 +232,8 @@ function render(view, arg) {
 function matrixView() {
   const rows = DATA.rows;
   let html = `<div class="note">Rows are topics, columns are people — the Framework Method
-    matrix, turned on its side to fit a screen. Bars show how much each person said.
-    Click any row.</div><div id="grid">`;
+    matrix, turned on its side to fit a screen. Each cell is the one-line reading of what that
+    person said; hover for their words, click the row for the full comparison.</div><div id="grid">`;
   let section = null;
   html += `<table><thead><tr><th style="width:330px"></th>` +
     rows.map(r => `<th><span class="who">${esc(r.display_name || r.row_id)}</span>
@@ -226,7 +247,6 @@ function matrixView() {
     }
     const syn = synOf(col.column_id);
     const conflicts = syn ? syn.conflicts.length : 0;
-    const max = Math.max(...rows.map(r => (cellOf(col.column_id, r.row_id) || {}).word_count || 0), 1);
     html += `<tr data-col="${col.column_id}"><td class="topic">${esc(col.label)}</td>` +
       rows.map(r => {
         const cell = cellOf(col.column_id, r.row_id);
@@ -234,9 +254,10 @@ function matrixView() {
           return `<td class="cell"><span class="none">${esc((cell || {}).status || 'not asked')
             .replace('_', ' ')}</span></td>`;
         }
-        const w = Math.max(12, Math.round(cell.word_count / max * 100));
-        return `<td class="cell"><div class="bar" style="width:${w}%"></div>
-          <span class="wc">${cell.word_count}w</span></td>`;
+        // Their words are one click away; the grid carries the reading of them.
+        const gist = gistFor(col.column_id, r.row_id);
+        return `<td class="cell" title="${esc(cell.text.slice(0, 400))}">${
+          gist ? esc(gist) : `<span class="none">${cell.word_count} words</span>`}</td>`;
       }).join('') +
       `<td class="flag">${conflicts
         ? `<span class="tag-conflict">⚡ ${conflicts} conflict${conflicts > 1 ? 's' : ''}</span>`

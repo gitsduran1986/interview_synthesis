@@ -16,14 +16,16 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from context_pass.budget import TokenCounter, pack
-from context_pass.corpus import Corpus, Unit
-from context_pass.runner import Stage, cache_key, git_sha
-from context_pass import runner
-from context_pass.sections import PROFILE_ONLY, TITLES
+from interview_synthesis.budget import TokenCounter, pack
+from interview_synthesis.corpus import Corpus, Unit
+from interview_synthesis.runner import Stage, cache_key, git_sha
+from interview_synthesis import runner
+from interview_synthesis.sections import PROFILE_ONLY, TITLES
 
-from coding import coder, store, timestamp as ts
-from coding.codebook import Codebook
+from interview_synthesis.coding import coder
+from interview_synthesis.coding import store
+from interview_synthesis.coding import timestamp as ts
+from interview_synthesis.coding.codebook import Codebook
 
 
 class Config(BaseModel):
@@ -291,7 +293,7 @@ def _text_id(unit: Unit, turn_index: int) -> str:
 
 
 def _text_id_of(unit_id: str, turn_index: int) -> str:
-    from coding.ingest import text_id
+    from interview_synthesis.coding.ingest import text_id
 
     return text_id(unit_id, turn_index)
 

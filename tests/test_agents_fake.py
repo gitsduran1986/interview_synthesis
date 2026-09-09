@@ -10,23 +10,33 @@ from pydantic_ai.messages import ModelResponse, ToolCallPart
 from pydantic_ai.models.function import FunctionModel
 from pydantic_ai.models.test import TestModel
 
-from context_pass.agents import (
+from interview_synthesis.context.agents import (
     Deps,
     _dedup_validator,
     build_agents,
     check_evidence,
     question_key,
 )
-from context_pass.models import (
+from pydantic import BaseModel
+
+from interview_synthesis.context.models import (
     Evidence,
     ExpertPass,
-    ExpertTheme,
     QuestionAsking,
     SectionQuestion,
     SectionQuestions,
-    SectionThemes,
     UnitExtractBatch,
 )
+
+
+class Cited(BaseModel):
+    """A minimal carrier for the evidence validator tests.
+
+    Local on purpose: these tests are about `check_evidence` walking a model tree and
+    verifying quotes, not about any particular production model's shape.
+    """
+
+    evidence: list[Evidence]
 
 
 def _evidence(quote, speaker="expert", path="structured/02-current-environment/expert-1.md"):
@@ -40,13 +50,7 @@ def _evidence(quote, speaker="expert", path="structured/02-current-environment/e
 
 
 def _theme(evidence):
-    return ExpertTheme(
-        theme_id="a-theme",
-        label="Label",
-        statement="Statement.",
-        sections=["02-current-environment"],
-        evidence=[evidence],
-    )
+    return Cited(evidence=[evidence])
 
 
 # --------------------------- evidence checking ---------------------------
@@ -136,13 +140,12 @@ def test_dedup_validator_allows_genuinely_different_questions():
 
 def test_all_agents_build_and_schemas_are_representable():
     agents = build_agents()
-    assert set(agents) == {"extract", "expert", "question", "theme"}
+    assert set(agents) == {"extract", "expert", "question"}
 
 
 @pytest.mark.parametrize(
     "name,expected",
-    [("extract", "UnitExtractBatch"), ("question", "SectionQuestions"),
-     ("theme", "SectionThemes")],
+    [("extract", "UnitExtractBatch"), ("question", "SectionQuestions")],
 )
 async def test_agents_run_end_to_end_against_testmodel(corpus, name, expected):
     """Proves each output type is schema-representable and the deps plumbing is wired."""
@@ -163,7 +166,7 @@ async def test_invented_evidence_never_survives_validation(corpus):
             await agents["expert"].run("go", deps=Deps(corpus=corpus))
 
 
-@pytest.mark.parametrize("model", [UnitExtractBatch, ExpertPass, SectionQuestions, SectionThemes])
+@pytest.mark.parametrize("model", [UnitExtractBatch, ExpertPass, SectionQuestions])
 def test_output_types_generate_valid_json_schemas(model):
     schema = model.model_json_schema()
     assert schema["type"] == "object"
@@ -178,10 +181,6 @@ async def test_validator_sends_a_bad_quote_back_then_accepts_a_good_one(corpus, 
         calls["n"] += 1
         quote = "this was never said by anyone" if calls["n"] == 1 else real_quotes["expert"]
         payload = {
-            "theme_id": "a-theme",
-            "label": "Label",
-            "statement": "Statement.",
-            "sections": ["02-current-environment"],
             "evidence": [
                 {
                     "quote": quote,
@@ -195,11 +194,11 @@ async def test_validator_sends_a_bad_quote_back_then_accepts_a_good_one(corpus, 
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, payload)])
 
     agent = Agent(
-        FunctionModel(respond), output_type=ExpertTheme, deps_type=Deps, retries=2
+        FunctionModel(respond), output_type=Cited, deps_type=Deps, retries=2
     )
 
     @agent.output_validator
-    def validate(ctx: RunContext[Deps], out: ExpertTheme) -> ExpertTheme:
+    def validate(ctx: RunContext[Deps], out: Cited) -> Cited:
         problems = check_evidence(ctx.deps.corpus, out)
         if problems:
             raise ModelRetry("bad citations: " + "; ".join(problems))
@@ -215,20 +214,20 @@ async def test_validator_sends_a_bad_quote_back_then_accepts_a_good_one(corpus, 
 
 def test_each_stage_has_its_own_prompt_digest():
     """Editing one stage's prompt must not invalidate the other stages' caches."""
-    from context_pass import prompts
+    from interview_synthesis.context import prompts
 
     digests = {name: prompts.stage_digest(name) for name in prompts.STAGE_INSTRUCTIONS}
     assert len(set(digests.values())) == len(digests)
-    assert set(digests) == {"extract", "expert", "question", "theme"}
+    assert set(digests) == {"extract", "expert", "question"}
 
 
-def test_question_and_theme_prompts_do_not_overlap_in_job():
-    """Each stage is told to do one job, so neither spends the other's output budget."""
-    from context_pass import prompts
+def test_pass_one_does_not_interpret():
+    """Pass 1 answers who and what-was-asked. Reading answers against each other is pass 3's
+    job, and the prompt says so - two stages producing themes is what this pass shed."""
+    from interview_synthesis.context import prompts
 
-    assert "themes" not in prompts.QUESTION_INSTRUCTIONS.split("Do not produce")[0].lower()
-    assert "Do not produce themes" in prompts.QUESTION_INSTRUCTIONS
-    assert "another stage owns" in prompts.THEME_INSTRUCTIONS
+    assert "theme" not in prompts.STAGE_INSTRUCTIONS
+    assert "Do not produce summaries or analysis" in prompts.QUESTION_INSTRUCTIONS
 
 
 def _questions(section_slug, expert_slug, timestamp):
@@ -253,7 +252,7 @@ def _questions(section_slug, expert_slug, timestamp):
 
 def test_answer_timestamp_must_point_at_a_real_interviewee_turn(corpus):
     """The join key a later stage relies on is validated where it is created."""
-    from context_pass.agents import _timestamp_validator
+    from interview_synthesis.context.agents import _timestamp_validator
 
     section = "06-cost-total-cost-of-ownership"
     unit = corpus.by_path(f"structured/{section}/expert-1.md")
@@ -275,7 +274,7 @@ def test_answer_timestamp_must_point_at_a_real_interviewee_turn(corpus):
 
 def test_null_answer_timestamp_is_allowed(corpus):
     """Better an honest null than a guessed timestamp."""
-    from context_pass.agents import _timestamp_validator
+    from interview_synthesis.context.agents import _timestamp_validator
 
     class Ctx:
         pass

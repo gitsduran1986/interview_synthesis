@@ -14,9 +14,9 @@ from __future__ import annotations
 import re
 import sqlite3
 
-from context_pass.sections import TITLES
+from interview_synthesis.sections import TITLES
 
-from synthesis.models import (
+from interview_synthesis.synthesis.models import (
     MatrixCell,
     MatrixColumn,
     MatrixRow,

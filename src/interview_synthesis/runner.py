@@ -17,7 +17,7 @@ from typing import Any, Protocol, runtime_checkable
 from pydantic import BaseModel
 from pydantic_ai import Agent, capture_run_messages
 
-from context_pass.models import StageUsage
+from interview_synthesis.context.models import StageUsage
 
 
 @runtime_checkable

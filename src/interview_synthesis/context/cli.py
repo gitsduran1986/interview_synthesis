@@ -13,13 +13,14 @@ import os
 import sys
 from pathlib import Path
 
-from context_pass import corpus as corpus_mod
-from context_pass.agents import DEFAULT_MODEL, build_agents
-from context_pass.budget import make_counter, plan_extract_calls
-from context_pass.pipeline import Config, run
-from context_pass.sections import eval_sections
+from interview_synthesis import paths
 
-ROOT = Path(__file__).resolve().parent.parent
+from interview_synthesis import corpus as corpus_mod
+from interview_synthesis.context.agents import DEFAULT_MODEL, build_agents
+from interview_synthesis.budget import make_counter, plan_extract_calls
+from interview_synthesis.context.pipeline import Config, run
+from interview_synthesis.sections import eval_sections
+
 
 
 def load_dotenv(path: Path) -> None:
@@ -42,8 +43,8 @@ def build_parser() -> argparse.ArgumentParser:
         prog="context-pass",
         description="First-pass context extraction over structured interview transcripts.",
     )
-    parser.add_argument("--structured", type=Path, default=ROOT / "structured")
-    parser.add_argument("--out", type=Path, default=ROOT / "out")
+    parser.add_argument("--structured", type=Path, default=paths.structured_dir())
+    parser.add_argument("--out", type=Path, default=paths.out_dir())
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument(
         "--max-input-tokens",
@@ -65,7 +66,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--refresh",
         action="append",
         default=[],
-        choices=["extract", "expert", "question", "theme", "all"],
+        choices=["extract", "expert", "question", "all"],
         help="Ignore cached results for a stage.",
     )
     parser.add_argument("--fail-fast", action="store_true")
@@ -84,14 +85,14 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    load_dotenv(ROOT / ".env")
+    load_dotenv(paths.env_file())
 
     if not args.dry_run and not (
         os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")
     ):
         print(
             "No Anthropic credentials found. Set ANTHROPIC_API_KEY in the environment or "
-            f"put it in {ROOT / '.env'} (gitignored). Use --dry-run to plan without one.",
+            f"put it in {paths.env_file()} (gitignored). Use --dry-run to plan without one.",
             file=sys.stderr,
         )
         return 2
@@ -121,7 +122,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"input:     {total_tokens:,} tokens ({kind})")
     print(
         f"call plan: {len(plan)} extract + {len(experts)} expert + {len(sections)} question "
-        f"+ {len(sections)} theme = {len(plan) + len(experts) + 2 * len(sections)} calls"
+        f"= {len(plan) + len(experts) + len(sections)} calls"
     )
 
     if args.dry_run:
@@ -135,9 +136,7 @@ def main(argv: list[str] | None = None) -> int:
         concurrency=args.concurrency,
         use_cache=not args.no_cache,
         refresh=(
-            {"extract", "expert", "question", "theme"}
-            if "all" in args.refresh
-            else set(args.refresh)
+            {"extract", "expert", "question"} if "all" in args.refresh else set(args.refresh)
         ),
         fail_fast=args.fail_fast,
         out_dir=args.out,

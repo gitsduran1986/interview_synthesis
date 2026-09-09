@@ -4,7 +4,7 @@ These are the tests that matter for a corpus larger than the one on disk today, 
 only way to exercise that path without actually having a huge corpus.
 """
 
-from context_pass.budget import (
+from interview_synthesis.budget import (
     HeuristicTokenCounter,
     chunk_unit,
     pack,

@@ -17,7 +17,7 @@ from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 from typing import Protocol, TypeVar
 
-from context_pass.corpus import Turn, Unit
+from interview_synthesis.corpus import Turn, Unit
 
 T = TypeVar("T")
 

@@ -6,10 +6,11 @@ from pathlib import Path
 import pytest
 from pydantic_ai import ModelRetry
 
-from coding import store as coding_store
-from synthesis import agents as agents_mod
-from synthesis import matrix, pipeline
-from synthesis.models import (
+from interview_synthesis.coding import store as coding_store
+from interview_synthesis.synthesis import agents as agents_mod
+from interview_synthesis.synthesis import matrix
+from interview_synthesis.synthesis import pipeline
+from interview_synthesis.synthesis.models import (
     Citation,
     ColumnSynthesis,
     ColumnSynthesisBatch,
@@ -242,13 +243,20 @@ def test_single_source_column_cannot_report_agreement(charted):
 
 
 def test_comparability_is_derived_not_asked(charted):
+    """Arithmetic over the roster, computed in Python.
+
+    Asserted as a rule rather than a count - how many threads reach all three interviewees
+    depends on the pass-1 run and shifts legitimately when it is re-run.
+    """
     rows, columns, _ = charted
-    threads = [c for c in columns if c.grain == "thread"]
     assert matrix.comparability(3, len(rows)) == "all_rows"
     assert matrix.comparability(2, len(rows)) == "partial"
     assert matrix.comparability(1, len(rows)) == "single_source"
     assert matrix.comparability(0, len(rows)) == "none"
-    assert sum(1 for c in threads if c.respondent_count == 3) == 24
+
+    for column in (c for c in columns if c.grain == "thread"):
+        expected = matrix.comparability(column.respondent_count, len(rows))
+        assert column.comparable == (expected in {"all_rows", "partial"})
 
 
 # --------------------------- UI addressability ---------------------------

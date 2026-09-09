@@ -15,10 +15,10 @@ from pydantic import BaseModel
 from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.models.anthropic import AnthropicModelSettings
 
-from context_pass.corpus import normalize
+from interview_synthesis.corpus import normalize
 
-from synthesis import prompts
-from synthesis.models import (
+from interview_synthesis.synthesis import prompts
+from interview_synthesis.synthesis.models import (
     CaseSynthesisOut,
     Citation,
     ColumnSynthesisBatch,

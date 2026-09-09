@@ -23,19 +23,19 @@ from pathlib import Path
 from pydantic import BaseModel
 from pydantic_ai import Agent
 
-from context_pass import prompts, runner
-from context_pass.agents import Deps, check_evidence, walk_evidence
-from context_pass.budget import (
+from interview_synthesis.context import prompts
+from interview_synthesis import runner
+from interview_synthesis.context.agents import Deps, check_evidence, walk_evidence
+from interview_synthesis.budget import (
     Chunk,
     TokenCounter,
     plan_extract_calls,
     plan_reduce_rounds,
 )
-from context_pass.corpus import Corpus
-from context_pass.models import (
+from interview_synthesis.corpus import Corpus
+from interview_synthesis.context.models import (
     EvidenceAudit,
     SectionQuestions,
-    SectionThemes,
     ExpertPass,
     FirstPassContext,
     QuestionAsking,
@@ -47,8 +47,8 @@ from context_pass.models import (
     UnitExtractBatch,
     UnverifiedQuote,
 )
-from context_pass.runner import Stage
-from context_pass.sections import TITLES, eval_sections, section_number
+from interview_synthesis.runner import Stage
+from interview_synthesis.sections import TITLES, eval_sections, section_number
 
 
 class Config(BaseModel):
@@ -326,18 +326,6 @@ async def run_questions(agents, corpus, extracts, counter, cfg, deps):
     )
 
 
-async def run_themes(agents, corpus, extracts, counter, cfg, deps):
-    return await _run_section_stage(
-        agents, corpus, extracts, counter, cfg, deps,
-        stage_name="theme",
-        output_type=SectionThemes,
-        header=(
-            "Section '{slug}' ({title}). Below are the extracts for each interviewee in "
-            "this section. Identify the themes across them."
-        ),
-    )
-
-
 # --------------------------- assembly ---------------------------
 
 
@@ -390,7 +378,7 @@ def finalize_questions(section: SectionPass, roster_size: int) -> None:
 def audit_evidence(corpus: Corpus, context: FirstPassContext) -> EvidenceAudit:
     """Re-check every citation in the assembled document, cached results included."""
     audit = EvidenceAudit()
-    for scope in (context.interviewees, context.interviewee_themes, context.sections):
+    for scope in (context.interviewees, context.sections):
         for path, evidence in walk_evidence(scope):
             audit.total += 1
             problems = check_evidence(corpus, evidence)
@@ -425,39 +413,32 @@ async def run(
 
     extracts, extract_stage, planned_calls = await run_extract(agents, corpus, counter, cfg, deps)
 
-    # All three reduces depend only on stage 1, so they run concurrently. They are separate
-    # stages rather than one call per section: question deduplication and answer pairing is
-    # its own job, evaluable on its own, and must not share an output budget with themes.
+    # Both reduces depend only on stage 1, so they run concurrently. They stay separate stages
+    # rather than one call per section: question deduplication and answer pairing is its own
+    # job and has to be evaluable on its own.
     (
         (expert_passes, expert_stage),
         (question_results, question_stage),
-        (theme_results, theme_stage),
     ) = await asyncio.gather(
         run_experts(agents, corpus, extracts, counter, cfg, deps),
         run_questions(agents, corpus, extracts, counter, cfg, deps),
-        run_themes(agents, corpus, extracts, counter, cfg, deps),
     )
 
-    sections = []
-    for slug in _section_slugs(corpus, cfg):
-        questions = question_results.get(slug)
-        themes = theme_results.get(slug)
-        if questions is None and themes is None:
-            continue
-        sections.append(
-            SectionPass(
-                section_slug=slug,
-                title=TITLES.get(slug, slug),
-                questions=questions.questions if questions else [],
-                themes=themes.themes if themes else [],
-            )
+    sections = [
+        SectionPass(
+            section_slug=slug,
+            title=TITLES.get(slug, slug),
+            questions=question_results[slug].questions,
         )
+        for slug in _section_slugs(corpus, cfg)
+        if slug in question_results
+    ]
 
     roster_size = len(cfg.only_experts or corpus.experts)
     for section in sections:
         finalize_questions(section, roster_size)
 
-    stages = [extract_stage, expert_stage, question_stage, theme_stage]
+    stages = [extract_stage, expert_stage, question_stage]
     warnings = [w for s in stages for w in s.warnings]
     costs = [s.usage.cost_usd for s in stages if s.usage.cost_usd is not None]
 
@@ -486,7 +467,6 @@ async def run(
                 "extract": planned_calls,
                 "expert": expert_stage.usage.calls + expert_stage.usage.cached_calls,
                 "question": question_stage.usage.calls + question_stage.usage.cached_calls,
-                "theme": theme_stage.usage.calls + theme_stage.usage.cached_calls,
             },
             usage=[s.usage for s in stages],
             total_cost_usd=sum(costs) if costs else None,
@@ -495,7 +475,6 @@ async def run(
             status="partial" if warnings else "complete",
         ),
         interviewees=[p.profile for p in expert_passes.values()],
-        interviewee_themes={e: p.themes for e, p in expert_passes.items()},
         sections=sections,
     )
     context.evidence_audit = audit_evidence(corpus, context)

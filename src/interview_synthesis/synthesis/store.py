@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import sqlite3
 
-from synthesis.models import Synthesis
+from interview_synthesis.synthesis.models import Synthesis
 
 DDL = """
 CREATE TABLE IF NOT EXISTS matrix_column (

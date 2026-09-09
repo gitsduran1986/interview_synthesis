@@ -15,13 +15,12 @@ from pydantic import BaseModel
 from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.models.anthropic import AnthropicModelSettings
 
-from context_pass import prompts
-from context_pass.corpus import Corpus, normalize
-from context_pass.models import (
+from interview_synthesis.context import prompts
+from interview_synthesis.corpus import Corpus, normalize
+from interview_synthesis.context.models import (
     Evidence,
     ExpertPass,
     SectionQuestions,
-    SectionThemes,
     UnitExtractBatch,
 )
 
@@ -200,16 +199,9 @@ def build_agents(
         name="question",
         **common,
     )
-    theme = Agent(
-        output_type=SectionThemes,
-        instructions=prompts.THEME_INSTRUCTIONS,
-        name="theme",
-        **common,
-    )
-
-    for agent in (extract, expert, question, theme):
+    for agent in (extract, expert, question):
         agent.output_validator(_evidence_validator)
     question.output_validator(_dedup_validator)
     question.output_validator(_timestamp_validator)
 
-    return {"extract": extract, "expert": expert, "question": question, "theme": theme}
+    return {"extract": extract, "expert": expert, "question": question}

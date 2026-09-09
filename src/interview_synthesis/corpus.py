@@ -12,7 +12,7 @@ import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from context_pass.sections import SECTIONS, SKIP, TITLES
+from interview_synthesis.sections import SECTIONS, SKIP, TITLES
 
 FRONTMATTER = re.compile(r"\A---\n(.*?)\n---\n", re.S)
 TURN = re.compile(r"^\*\*(?P<speaker>[^*]+?)\*\*\s*\((?P<ts>\d{2}:\d{2}:\d{2})\)\s*$")

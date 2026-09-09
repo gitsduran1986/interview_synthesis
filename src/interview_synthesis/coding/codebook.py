@@ -25,7 +25,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from context_pass.models import FirstPassContext
+from interview_synthesis.context.models import FirstPassContext
 
 SCHEMA_VERSION = "1.0"
 

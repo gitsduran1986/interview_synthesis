@@ -15,10 +15,10 @@ import sqlite3
 from collections.abc import Iterator
 from pathlib import Path
 
-from context_pass.corpus import Corpus, Unit, normalize
-from context_pass.sections import PROFILE_ONLY, SKIP
+from interview_synthesis.corpus import Corpus, Unit, normalize
+from interview_synthesis.sections import PROFILE_ONLY, SKIP
 
-from coding import store
+from interview_synthesis.coding import store
 
 COMMIT_EVERY = 200  # units; keeps a large ingest from fsyncing per unit
 

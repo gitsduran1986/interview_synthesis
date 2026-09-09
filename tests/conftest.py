@@ -11,8 +11,8 @@ import pytest
 
 pydantic_ai.models.ALLOW_MODEL_REQUESTS = False
 
-from context_pass import corpus as corpus_mod  # noqa: E402
-from context_pass.budget import HeuristicTokenCounter  # noqa: E402
+from interview_synthesis import corpus as corpus_mod  # noqa: E402
+from interview_synthesis.budget import HeuristicTokenCounter  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 

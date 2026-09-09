@@ -26,9 +26,9 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from context_pass.corpus import Unit, normalize
+from interview_synthesis.corpus import Unit, normalize
 
-from coding.codebook import Codebook
+from interview_synthesis.coding.codebook import Codebook
 
 # Process talk: turns that are not an answer to anything, in any context.
 #

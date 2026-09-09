@@ -55,6 +55,30 @@ Both reduces depend only on the map stage, so they run concurrently.
 
 ## Trade-offs
 
+### 0. What this pass deliberately does not do
+
+It used to emit 22 interviewee themes and 50 section themes. Nothing read them. Not the coding
+pass, not the synthesis, not the UI - and they were **62% of the output file** and the single
+most expensive stage in the pipeline.
+
+They existed because pass 1 was built before pass 3. Once the framework matrix arrived, the
+same job was being done twice, and done better the second time: pass 3's column syntheses read
+what people said *against each other* with the cells in front of them, and its case syntheses
+read one person across the whole matrix. Pass 1 was guessing at the same conclusions from
+extracts, with no matrix to check them against.
+
+So the theme stage was removed outright. What remains is what something downstream actually
+reads, plus the interviewee findings:
+
+| Output | Read by |
+|---|---|
+| Canonical questions + `asked_of` | `coding/codebook.py` (the label space and the answer anchors) |
+| Interviewee profiles | `synthesis/matrix.py` (row labels) and the UI; the factual findings about each person |
+
+**The cost:** if you ever want pass 1's output on its own, without running pass 3, it now tells
+you who and what-was-asked and stops there. That is the right trade - two passes producing
+overlapping interpretations is worse than one producing it well.
+
 ### 1. Map-reduce over a single whole-corpus call
 
 The corpus is ~28k measured tokens against a 1M context window. Everything could go in one
@@ -75,11 +99,11 @@ call, and that would be cheaper and faster.
 **Cost:** ~16 calls instead of 1, and a full uncached run at $3.22 instead of well under a
 dollar. Caching makes reruns free, which is what makes this acceptable.
 
-### 1b. Question extraction is its own stage, not part of the section reduce
+### 1b. Question extraction is its own stage
 
-Deduplicating questions and pairing each with the turn that answered it used to share one
-call with theme generation. It is now a separate agent (`question`) with its own prompt,
-cache, and output type (`SectionQuestions`), running concurrently with `theme` and `expert`.
+Deduplicating questions and pairing each with the turn that answered it used to share one call
+with theme generation. It became a separate agent (`question`) with its own prompt, cache, and
+output type; when themes were dropped it stayed separate, and the reasons still hold.
 
 **Why the split is worth an extra call per section:**
 

@@ -7,8 +7,8 @@ from pydantic_ai import Agent
 from pydantic_ai.messages import ModelResponse, ToolCallPart
 from pydantic_ai.models.function import FunctionModel
 
-from context_pass.agents import Deps
-from context_pass.models import (
+from interview_synthesis.context.agents import Deps
+from interview_synthesis.context.models import (
     AskedQuestion,
     Evidence,
     QuestionAsking,
@@ -16,7 +16,7 @@ from context_pass.models import (
     SectionQuestion,
     UnitExtract,
 )
-from context_pass.pipeline import (
+from interview_synthesis.context.pipeline import (
     Config,
     _merge_chunk_extracts,
     audit_evidence,
@@ -170,22 +170,19 @@ def _fake_model(corpus, real_quotes, *, fail_on: str | None = None):
                     "tenure": "5 years",
                     "background": "Background.",
                     "ui_statement": "A factual caption.",
-                    "credentials": [],
+                    "credentials": [
+                        {
+                            "claim": "Ran the platform",
+                            "kind": "prior_role",
+                            "evidence": evidence,
+                        }
+                    ],
                     "platform_experience": [],
                     "scale_markers": [],
                     "stated_limits": [],
                 },
-                "themes": [
-                    {
-                        "theme_id": "a-theme",
-                        "label": "Label",
-                        "statement": "Statement.",
-                        "sections": ["02-current-environment"],
-                        "evidence": [evidence],
-                    }
-                ],
             }
-        elif "questions" in properties:
+        else:
             payload = {
                 "section_slug": "02-current-environment",
                 "questions": [
@@ -202,20 +199,17 @@ def _fake_model(corpus, real_quotes, *, fail_on: str | None = None):
                     }
                 ],
             }
-        else:
-            payload = {"section_slug": "02-current-environment", "themes": []}
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, payload)])
 
     return FunctionModel(respond)
 
 
 def _agents(model):
-    from context_pass import prompts
-    from context_pass.agents import _dedup_validator, _evidence_validator
-    from context_pass.models import (
+    from interview_synthesis.context import prompts
+    from interview_synthesis.context.agents import _dedup_validator, _evidence_validator
+    from interview_synthesis.context.models import (
         ExpertPass,
         SectionQuestions,
-        SectionThemes,
         UnitExtractBatch,
     )
 
@@ -224,7 +218,6 @@ def _agents(model):
         ("extract", UnitExtractBatch),
         ("expert", ExpertPass),
         ("question", SectionQuestions),
-        ("theme", SectionThemes),
     ):
         agent = Agent(
             model,
@@ -247,7 +240,7 @@ async def test_full_run_produces_a_serializable_document(corpus, counter, real_q
     context = await run(corpus, agents, counter, cfg)
 
     assert context.run.status == "complete"
-    assert context.interviewees and context.interviewee_themes
+    assert context.interviewees
     assert context.sections
     assert context.evidence_audit.total > 0
     assert context.evidence_audit.verified == context.evidence_audit.total
@@ -303,30 +296,38 @@ async def test_fail_fast_raises_instead(corpus, counter, real_quotes, tmp_path):
 
 
 def test_audit_reports_unverified_quotes(corpus):
-    from context_pass.models import ExpertTheme, FirstPassContext, RunMetadata
+    """A fabricated quote anywhere in the document is caught by the post-hoc audit."""
     from datetime import datetime, timezone
 
+    from interview_synthesis.context.models import (
+        Credential,
+        FirstPassContext,
+        IntervieweeProfile,
+        RunMetadata,
+    )
+
+    fabricated = Evidence(
+        quote="this line appears in no transcript at all",
+        speaker="expert",
+        expert_slug="expert-1",
+        section_slug="02-current-environment",
+        source_file="structured/02-current-environment/expert-1.md",
+    )
     context = FirstPassContext(
         run=RunMetadata(generated_at=datetime.now(timezone.utc), model="test"),
-        interviewee_themes={
-            "expert-1": [
-                ExpertTheme(
-                    theme_id="t",
-                    label="L",
-                    statement="S",
-                    sections=["02-current-environment"],
-                    evidence=[
-                        Evidence(
-                            quote="this line appears in no transcript at all",
-                            speaker="expert",
-                            expert_slug="expert-1",
-                            section_slug="02-current-environment",
-                            source_file="structured/02-current-environment/expert-1.md",
-                        )
-                    ],
-                )
-            ]
-        },
+        interviewees=[
+            IntervieweeProfile(
+                expert_slug="expert-1",
+                role_title="Role",
+                org_description="Org",
+                tenure="5 years",
+                background="Background.",
+                ui_statement="A factual caption.",
+                credentials=[
+                    Credential(claim="Ran the platform", kind="prior_role", evidence=fabricated)
+                ],
+            )
+        ],
     )
     audit = audit_evidence(corpus, context)
     assert audit.total == 1

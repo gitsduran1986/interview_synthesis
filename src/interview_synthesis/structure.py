@@ -8,23 +8,19 @@ Layout produced under structured/:
 Section-first so an evaluation agent can point at one directory and read every
 interviewee's answers to that section side by side.
 
-Usage: python3 scripts/build_structured.py
+Usage: uv run python -m interview_synthesis.structure
 """
 
 import re
 import shutil
-import sys
 import zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
-W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
-ROOT = Path(__file__).resolve().parent.parent
-RAW = ROOT / "raw"
-OUT = ROOT / "structured"
+from interview_synthesis import paths
+from interview_synthesis.sections import SECTIONS
 
-sys.path.insert(0, str(ROOT))
-from context_pass.sections import SECTIONS  # noqa: E402  (stdlib-only module)
+W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 
 # Section registry lives in context_pass/sections.py so the builder, the context pass,
 # and the downstream evaluator all agree on slugs and titles. "current * environment" is
@@ -138,7 +134,9 @@ def render(meta, slug, title, turns, source):
     return "\n".join(fm) + "\n".join(body)
 
 
-def main():
+def main(raw: Path | None = None, out: Path | None = None):
+    RAW = raw or paths.raw_dir()
+    OUT = out or paths.structured_dir()
     if OUT.exists():
         shutil.rmtree(OUT)
     titles = dict(SECTIONS)

@@ -1,7 +1,7 @@
 """Corpus parsing and quote normalization. No model involved."""
 
-from context_pass.corpus import normalize
-from context_pass.sections import SKIP, eval_sections
+from interview_synthesis.corpus import normalize
+from interview_synthesis.sections import SKIP, eval_sections
 
 
 def test_roster_is_discovered_not_hardcoded(corpus):
@@ -28,7 +28,7 @@ def test_both_speakers_present_and_separable(corpus):
 def test_digest_is_stable_across_loads(corpus):
     from pathlib import Path
 
-    from context_pass import corpus as corpus_mod
+    from interview_synthesis import corpus as corpus_mod
 
     again = corpus_mod.load(Path("structured"))
     assert again.digest() == corpus.digest()

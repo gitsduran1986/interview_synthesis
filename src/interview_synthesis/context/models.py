@@ -1,5 +1,10 @@
 """Pydantic models for the first-pass context extraction.
 
+This pass answers two questions and nothing else: **who are these people**, and **what were
+they asked**. Interpretation - themes, agreement, conflict - belongs to pass 3, which does it
+against the matrix where the evidence sits. Nothing here is kept unless something downstream
+reads it.
+
 Two kinds of model live here:
 
 * **Agent output types** — what a model is asked to produce. Their `Field(description=...)`
@@ -139,7 +144,11 @@ class IntervieweeProfile(BaseModel):
         ),
     )
     credentials: list[Credential] = Field(
-        default_factory=list, max_length=12, description="Sourced background facts."
+        min_length=1,
+        max_length=12,
+        description="Sourced background facts, each with a verbatim quote. At least one - a "
+        "profile with nothing sourced is not a profile, and with themes gone this is what "
+        "keeps the interviewee findings anchored to the transcript.",
     )
     platform_experience: list[PlatformExperience] = Field(default_factory=list, max_length=12)
     scale_markers: list[str] = Field(
@@ -154,49 +163,6 @@ class IntervieweeProfile(BaseModel):
             "Quotes where the interviewee flagged a limit on their OWN knowledge — hedging, "
             "guessing, or declining to answer ('from my prior experience', \"I'm blanking on\"). "
             "Report their words. Draw no conclusion from them."
-        ),
-    )
-
-
-# ─────────────────────────── themes ───────────────────────────
-
-
-class ExpertTheme(BaseModel):
-    """Something one interviewee returns to across their interview."""
-
-    theme_id: str = Field(
-        pattern=r"^[a-z0-9]+(-[a-z0-9]+)*$",
-        max_length=60,
-        description="kebab-case slug, e.g. 'cost-drove-every-tradeoff'.",
-    )
-    label: str = Field(max_length=80)
-    statement: str = Field(
-        max_length=700, description="The through-line in this interviewee's own terms, 1-3 sentences."
-    )
-    sections: list[str] = Field(min_length=1, description="section_slugs where it surfaces.")
-    evidence: list[Evidence] = Field(min_length=1, max_length=3)
-
-
-class ExpertPosition(BaseModel):
-    expert_slug: str
-    position: Position
-    nuance: str = Field(
-        max_length=400, description="What this interviewee specifically said. Empty if not_addressed."
-    )
-    evidence: list[Evidence] = Field(default_factory=list, max_length=2)
-
-
-class SectionTheme(BaseModel):
-    """A theme within one section, across the interviewees who spoke to it."""
-
-    theme_id: str = Field(pattern=r"^[a-z0-9]+(-[a-z0-9]+)*$", max_length=60)
-    label: str = Field(max_length=80)
-    statement: str = Field(max_length=800)
-    expert_positions: list[ExpertPosition] = Field(min_length=1)
-    convergence: Literal["all", "most", "split", "single_source"] = Field(
-        description=(
-            "How widely held this is among the interviewees who addressed it. Descriptive "
-            "only — this is a handful of interviews, never a statistical finding."
         ),
     )
 
@@ -297,10 +263,9 @@ class UnitExtractBatch(BaseModel):
 
 
 class ExpertPass(BaseModel):
-    """Stage 2a output: one interviewee's profile and through-lines."""
+    """Output of the expert stage: one interviewee's factual profile."""
 
     profile: IntervieweeProfile
-    themes: list[ExpertTheme] = Field(min_length=1, max_length=10)
 
 
 class SectionQuestions(BaseModel):
@@ -315,20 +280,12 @@ class SectionQuestions(BaseModel):
     questions: list[SectionQuestion] = Field(default_factory=list, max_length=25)
 
 
-class SectionThemes(BaseModel):
-    """Output of the theme stage: what the interviewees collectively say in one section."""
-
-    section_slug: str = ""
-    themes: list[SectionTheme] = Field(default_factory=list, max_length=10)
-
-
 class SectionPass(BaseModel):
-    """Assembled in Python from the question and theme stages."""
+    """One section's deduplicated questions, assembled in Python."""
 
     section_slug: str
     title: str = ""
     questions: list[SectionQuestion] = Field(default_factory=list, max_length=25)
-    themes: list[SectionTheme] = Field(default_factory=list, max_length=10)
 
 
 # ─────────────────────────── assembly (never model output) ───────────────────────────
@@ -391,7 +348,6 @@ class FirstPassContext(BaseModel):
 
     run: RunMetadata
     interviewees: list[IntervieweeProfile] = Field(default_factory=list)
-    interviewee_themes: dict[str, list[ExpertTheme]] = Field(default_factory=dict)
     sections: list[SectionPass] = Field(default_factory=list)
     evidence_audit: EvidenceAudit = Field(default_factory=EvidenceAudit)
 
@@ -401,5 +357,3 @@ class FirstPassContext(BaseModel):
     def expert(self, slug: str) -> IntervieweeProfile | None:
         return next((e for e in self.interviewees if e.expert_slug == slug), None)
 
-    def themes_for(self, slug: str) -> list[ExpertTheme]:
-        return self.interviewee_themes.get(slug, [])

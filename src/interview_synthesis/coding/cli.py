@@ -13,14 +13,18 @@ import os
 import sys
 from pathlib import Path
 
-from context_pass import corpus as corpus_mod
-from context_pass.budget import make_counter
-from context_pass.cli import load_dotenv
+from interview_synthesis import paths
 
-from coding import codebook as codebook_mod
-from coding import coder, ingest, pipeline, store
+from interview_synthesis import corpus as corpus_mod
+from interview_synthesis.budget import make_counter
+from interview_synthesis.context.cli import load_dotenv
 
-ROOT = Path(__file__).resolve().parent.parent
+from interview_synthesis.coding import codebook as codebook_mod
+from interview_synthesis.coding import coder
+from interview_synthesis.coding import ingest
+from interview_synthesis.coding import pipeline
+from interview_synthesis.coding import store
+
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -28,11 +32,11 @@ def build_parser() -> argparse.ArgumentParser:
         prog="code-pass",
         description="Code interviewee text against the canonical questions from pass 1.",
     )
-    parser.add_argument("--structured", type=Path, default=ROOT / "structured")
-    parser.add_argument("--first-pass", type=Path, default=ROOT / "out/first_pass_context.json")
-    parser.add_argument("--db", type=Path, default=ROOT / "out/coding.db")
-    parser.add_argument("--codebook", type=Path, default=ROOT / "out/codebook.json")
-    parser.add_argument("--export", type=Path, default=ROOT / "out/coding.jsonl")
+    parser.add_argument("--structured", type=Path, default=paths.structured_dir())
+    parser.add_argument("--first-pass", type=Path, default=paths.out_dir() / "first_pass_context.json")
+    parser.add_argument("--db", type=Path, default=paths.out_dir() / "coding.db")
+    parser.add_argument("--codebook", type=Path, default=paths.out_dir() / "codebook.json")
+    parser.add_argument("--export", type=Path, default=paths.out_dir() / "coding.jsonl")
     parser.add_argument(
         "--strategy",
         choices=["timestamp", "model"],
@@ -111,7 +115,7 @@ def _print_stats(conn) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    load_dotenv(ROOT / ".env")
+    load_dotenv(paths.env_file())
 
     if args.stats:
         if not args.db.exists():
@@ -186,7 +190,7 @@ def main(argv: list[str] | None = None) -> int:
     ):
         print(
             f"No Anthropic credentials found. Set ANTHROPIC_API_KEY or put it in "
-            f"{ROOT / '.env'}. Use --dry-run to plan without one.",
+            f"{paths.env_file()}. Use --dry-run to plan without one.",
             file=sys.stderr,
         )
         return 2

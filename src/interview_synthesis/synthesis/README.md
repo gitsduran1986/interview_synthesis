@@ -203,5 +203,6 @@ one JSON, so the export would become per-section files.
    real disagreement. The grouping is stored in `matrix_column_question`, so it can be diffed.
 4. **Cells are one turn each** under pass 2's timestamp strategy. `code-pass --span-fill`
    would give fuller cells at the price of the extra rows being inference.
-5. **Pass 1 also emits 50 section themes**, which overlap with pass 3's column syntheses. If a
-   UI renders both, it shows two answers to the same question. Pass 3 should supersede.
+5. **Pass 1 used to emit its own themes**, which overlapped with these syntheses. They were
+   removed rather than reconciled - this pass reads what people said against each other with the
+   cells in front of it, which pass 1 could not do.

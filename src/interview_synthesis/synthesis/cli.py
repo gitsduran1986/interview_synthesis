@@ -15,17 +15,19 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from coding import store as coding_store
-from context_pass.budget import make_counter
-from context_pass.cli import load_dotenv
+from interview_synthesis import paths
 
-from synthesis import agents as agents_mod
-from synthesis import report as synth_report
-from synthesis import store as synth_store
-from synthesis import matrix, pipeline
-from synthesis.models import Synthesis
+from interview_synthesis.coding import store as coding_store
+from interview_synthesis.budget import make_counter
+from interview_synthesis.context.cli import load_dotenv
 
-ROOT = Path(__file__).resolve().parent.parent
+from interview_synthesis.synthesis import agents as agents_mod
+from interview_synthesis.synthesis import report as synth_report
+from interview_synthesis.synthesis import store as synth_store
+from interview_synthesis.synthesis import matrix
+from interview_synthesis.synthesis import pipeline
+from interview_synthesis.synthesis.models import Synthesis
+
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -33,9 +35,9 @@ def build_parser() -> argparse.ArgumentParser:
         prog="synth-pass",
         description="Chart the coded interviews into a framework matrix and synthesize it.",
     )
-    parser.add_argument("--db", type=Path, default=ROOT / "out/coding.db")
-    parser.add_argument("--first-pass", type=Path, default=ROOT / "out/first_pass_context.json")
-    parser.add_argument("--out", type=Path, default=ROOT / "out/synthesis.json")
+    parser.add_argument("--db", type=Path, default=paths.out_dir() / "coding.db")
+    parser.add_argument("--first-pass", type=Path, default=paths.out_dir() / "first_pass_context.json")
+    parser.add_argument("--out", type=Path, default=paths.out_dir() / "synthesis.json")
     parser.add_argument("--model", default=agents_mod.DEFAULT_MODEL)
     parser.add_argument("--max-input-tokens", type=int, default=120_000)
     parser.add_argument("--columns-per-call", type=int, default=4)
@@ -78,7 +80,7 @@ def _stats(path: Path) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    load_dotenv(ROOT / ".env")
+    load_dotenv(paths.env_file())
 
     if args.stats:
         return _stats(args.out)
@@ -135,7 +137,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if not (os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")):
-        print(f"No Anthropic credentials. Set ANTHROPIC_API_KEY or use {ROOT/'.env'}.",
+        print(f"No Anthropic credentials. Set ANTHROPIC_API_KEY or use {paths.env_file()}.",
               file=sys.stderr)
         return 2
 
@@ -154,11 +156,6 @@ def main(argv: list[str] | None = None) -> int:
     args.out.write_text(payload)
     written = synth_store.write(conn, doc)
 
-    # The UI is opened straight off the filesystem, and file:// blocks fetch(). A <script>
-    # tag is not blocked, so the same document is also emitted as JS for it to pick up.
-    ui_data = ROOT / "ui" / "data.js"
-    if ui_data.parent.exists():
-        ui_data.write_text(f"window.SYNTHESIS = {payload};\n")
 
     print(f"\nstatus:    {doc.run.status}")
     for usage in doc.run.usage:
@@ -175,9 +172,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"wrote:     {args.out}")
     print(f"           {args.db}  ({written['cells']} cells, "
           f"{written['synthesis_objects']} synthesis objects)")
-    if ui_data.exists():
-        print(f"           {ui_data}  (dev page: ui/index.html)")
-    built = synth_report.build(args.out, ROOT / "ui/index.html", ROOT / "out/report.html")
+    built = synth_report.build(args.out, paths.ui_template(), paths.out_dir() / "report.html")
     print(f"           {built['path']}  ({built['bytes'] // 1024}KB, self-contained)")
     return 0
 

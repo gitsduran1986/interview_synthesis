@@ -20,14 +20,15 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from context_pass import runner
-from context_pass.budget import TokenCounter, pack
-from context_pass.runner import Stage, git_sha
-from context_pass.sections import TITLES
+from interview_synthesis import runner
+from interview_synthesis.budget import TokenCounter, pack
+from interview_synthesis.runner import Stage, git_sha
+from interview_synthesis.sections import TITLES
 
-from synthesis import matrix, prompts
-from synthesis.agents import SynthDeps
-from synthesis.models import (
+from interview_synthesis.synthesis import matrix
+from interview_synthesis.synthesis import prompts
+from interview_synthesis.synthesis.agents import SynthDeps
+from interview_synthesis.synthesis.models import (
     CaseSynthesisOut,
     ColumnSynthesis,
     ColumnSynthesisBatch,

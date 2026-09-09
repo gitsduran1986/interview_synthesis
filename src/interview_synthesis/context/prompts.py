@@ -72,9 +72,6 @@ interviewees look comparable.
 hedging, guessing, or declining. Quote them and stop there; draw no conclusion.
 
 Do not include any rating, tier, score, or assessment of the person anywhere.
-
-`themes` are the few things this interviewee returns to across their interview. Give each a
-stable kebab-case id, the sections where it appears, and verbatim evidence.
 """.strip()
 
 QUESTION_INSTRUCTIONS = f"""
@@ -83,7 +80,8 @@ QUESTION_INSTRUCTIONS = f"""
 Your task, for ONE interview section: produce the questions asked in it, deduplicated across
 interviewees, and point each one at the turn where that interviewee answered it.
 
-This is the only thing you are doing. Do not produce themes, summaries, or analysis.
+This is the only thing you are doing. Do not produce summaries or analysis - a later stage
+reads these answers against each other and owns all of that.
 
 DEDUPLICATION IS THE CRITICAL PART. Read the questions asked of each interviewee and merge
 them into one entry ONLY when they ask for effectively the same thing, however differently
@@ -110,27 +108,12 @@ Number `question_id` as q-<section number>-<index>, e.g. q-06-01, q-06-02, follo
 order the questions arise in the section.
 """.strip()
 
-THEME_INSTRUCTIONS = f"""
-{SHARED_RULES}
-
-Your task, for ONE interview section: the themes across the interviewees who spoke to it.
-
-This is the only thing you are doing. Do not produce a question list - another stage owns
-that.
-
-Themes capture what the interviewees collectively say here, including where they disagree.
-Give each interviewee's position and verbatim evidence. Someone who did not address a theme
-gets `not_addressed` - that is a real and useful position.
-""".strip()
-
-
 # Per-stage instruction text. Digests are per-stage on purpose: editing the question prompt
 # must not invalidate cached extract or theme work.
 STAGE_INSTRUCTIONS = {
     "extract": EXTRACT_INSTRUCTIONS,
     "expert": EXPERT_INSTRUCTIONS,
     "question": QUESTION_INSTRUCTIONS,
-    "theme": THEME_INSTRUCTIONS,
 }
 
 

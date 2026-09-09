@@ -18,9 +18,9 @@ from pydantic import BaseModel, Field
 from pydantic_ai import Agent, ModelRetry, RunContext
 from pydantic_ai.models.anthropic import AnthropicModelSettings
 
-from context_pass.corpus import Unit
+from interview_synthesis.corpus import Unit
 
-from coding.codebook import Codebook
+from interview_synthesis.coding.codebook import Codebook
 
 DEFAULT_MODEL = "anthropic:claude-opus-5"
 # No temperature/top_p/budget_tokens: Opus 5 rejects all three.
