@@ -75,6 +75,29 @@ call, and that would be cheaper and faster.
 **Cost:** ~16 calls instead of 1, and a full uncached run at $3.22 instead of well under a
 dollar. Caching makes reruns free, which is what makes this acceptable.
 
+### 1b. Question extraction is its own stage, not part of the section reduce
+
+Deduplicating questions and pairing each with the turn that answered it used to share one
+call with theme generation. It is now a separate agent (`question`) with its own prompt,
+cache, and output type (`SectionQuestions`), running concurrently with `theme` and `expert`.
+
+**Why the split is worth an extra call per section:**
+
+- **Evaluability.** The pairing is the input to the whole coding pass downstream. When it
+  shared a call with themes, there was no way to assess it on its own — no isolated output to
+  score, and no way to change its prompt without disturbing theme quality. Now there is.
+- **Output budget.** Two artifacts competing for one `max_tokens` is where structured output
+  goes shallow. Each stage now spends its own.
+- **Prompt focus.** Each stage's instructions say "this is the only thing you are doing",
+  which measurably tightens both.
+- **Independent caches.** Stage digests are per-stage (`prompts.stage_digest`), so editing the
+  question prompt re-runs only the question stage. Under a single global digest, any prompt
+  edit invalidated everything including the extract stage.
+
+**Cost:** one extra call per section — 7 more on this corpus. **Also added:** a validator that
+rejects any `answer_timestamp` not pointing at a real interviewee turn, catching a bad join key
+where it is created rather than three stages later.
+
 ### 2. Reduces read extracts, not raw transcripts
 
 The reduce stages consume model-produced `UnitExtract` JSON rather than the original text.

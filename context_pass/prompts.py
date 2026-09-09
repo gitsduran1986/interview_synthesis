@@ -77,11 +77,13 @@ Do not include any rating, tier, score, or assessment of the person anywhere.
 stable kebab-case id, the sections where it appears, and verbatim evidence.
 """.strip()
 
-SECTION_INSTRUCTIONS = f"""
+QUESTION_INSTRUCTIONS = f"""
 {SHARED_RULES}
 
-Your task: for ONE interview section, produce (a) the questions asked in it, deduplicated
-across interviewees, and (b) the themes across the interviewees who spoke to it.
+Your task, for ONE interview section: produce the questions asked in it, deduplicated across
+interviewees, and point each one at the turn where that interviewee answered it.
+
+This is the only thing you are doing. Do not produce themes, summaries, or analysis.
 
 DEDUPLICATION IS THE CRITICAL PART. Read the questions asked of each interviewee and merge
 them into one entry ONLY when they ask for effectively the same thing, however differently
@@ -90,26 +92,54 @@ they are worded. For example "How did TCO compare to what you initially budgeted
 same question and become one entry.
 
 Do NOT merge questions that are merely related, or a follow-up that narrows onto a
-different point — those stay separate entries. When in doubt, keep them separate.
+different point - those stay separate entries. When in doubt, keep them separate.
 
 `asked_of` carries one entry per interviewee who was ACTUALLY asked that question, with the
 phrasing used for them. Never add an entry for an interviewee who was not asked. A question
-asked of only one person is still a valid entry with a single `asked_of` — their absence is
+asked of only one person is still a valid entry with a single `asked_of` - their absence is
 information the downstream evaluator needs, so that it does not penalise someone for
 failing to answer something nobody asked them.
 
+`answer_timestamp` must be the timestamp of the turn where that interviewee actually
+answered, copied exactly from the extract. It is the join key a later stage uses to attach
+transcript text to this question, so a wrong or invented timestamp silently detaches an
+answer from its question. If you cannot identify the answering turn, leave it null rather
+than guessing.
+
 Number `question_id` as q-<section number>-<index>, e.g. q-06-01, q-06-02, following the
 order the questions arise in the section.
+""".strip()
 
-`themes` capture what the interviewees collectively say here, including where they disagree.
+THEME_INSTRUCTIONS = f"""
+{SHARED_RULES}
+
+Your task, for ONE interview section: the themes across the interviewees who spoke to it.
+
+This is the only thing you are doing. Do not produce a question list - another stage owns
+that.
+
+Themes capture what the interviewees collectively say here, including where they disagree.
 Give each interviewee's position and verbatim evidence. Someone who did not address a theme
-gets `not_addressed` — that is a real and useful position.
+gets `not_addressed` - that is a real and useful position.
 """.strip()
 
 
+# Per-stage instruction text. Digests are per-stage on purpose: editing the question prompt
+# must not invalidate cached extract or theme work.
+STAGE_INSTRUCTIONS = {
+    "extract": EXTRACT_INSTRUCTIONS,
+    "expert": EXPERT_INSTRUCTIONS,
+    "question": QUESTION_INSTRUCTIONS,
+    "theme": THEME_INSTRUCTIONS,
+}
+
+
+def stage_digest(stage: str) -> str:
+    """Hash of one stage's instructions, so its cache turns over independently."""
+    return hashlib.sha256(STAGE_INSTRUCTIONS[stage].encode()).hexdigest()
+
+
 def prompt_digest() -> str:
-    """Hash of all instruction text, so a prompt edit is visible in run metadata."""
-    joined = "\n".join(
-        [SHARED_RULES, EXTRACT_INSTRUCTIONS, EXPERT_INSTRUCTIONS, SECTION_INSTRUCTIONS]
-    )
+    """Hash of all instruction text, recorded in run metadata."""
+    joined = "\n".join([SHARED_RULES, *STAGE_INSTRUCTIONS.values()])
     return hashlib.sha256(joined.encode()).hexdigest()

@@ -185,7 +185,7 @@ def _fake_model(corpus, real_quotes, *, fail_on: str | None = None):
                     }
                 ],
             }
-        else:
+        elif "questions" in properties:
             payload = {
                 "section_slug": "02-current-environment",
                 "questions": [
@@ -201,8 +201,9 @@ def _fake_model(corpus, real_quotes, *, fail_on: str | None = None):
                         ],
                     }
                 ],
-                "themes": [],
             }
+        else:
+            payload = {"section_slug": "02-current-environment", "themes": []}
         return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, payload)])
 
     return FunctionModel(respond)
@@ -211,19 +212,29 @@ def _fake_model(corpus, real_quotes, *, fail_on: str | None = None):
 def _agents(model):
     from context_pass import prompts
     from context_pass.agents import _dedup_validator, _evidence_validator
-    from context_pass.models import ExpertPass, UnitExtractBatch
+    from context_pass.models import (
+        ExpertPass,
+        SectionQuestions,
+        SectionThemes,
+        UnitExtractBatch,
+    )
 
     built = {}
-    for name, output_type, instructions in (
-        ("extract", UnitExtractBatch, prompts.EXTRACT_INSTRUCTIONS),
-        ("expert", ExpertPass, prompts.EXPERT_INSTRUCTIONS),
-        ("section", SectionPass, prompts.SECTION_INSTRUCTIONS),
+    for name, output_type in (
+        ("extract", UnitExtractBatch),
+        ("expert", ExpertPass),
+        ("question", SectionQuestions),
+        ("theme", SectionThemes),
     ):
         agent = Agent(
-            model, output_type=output_type, instructions=instructions, deps_type=Deps, retries=1
+            model,
+            output_type=output_type,
+            instructions=prompts.STAGE_INSTRUCTIONS[name],
+            deps_type=Deps,
+            retries=1,
         )
         agent.output_validator(_evidence_validator)
-        if name == "section":
+        if name == "question":
             agent.output_validator(_dedup_validator)
         built[name] = agent
     return built

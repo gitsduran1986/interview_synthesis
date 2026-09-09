@@ -16,16 +16,14 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
-import subprocess
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 from pydantic import BaseModel
-from pydantic_ai import Agent, capture_run_messages
+from pydantic_ai import Agent
 
-from context_pass import prompts
+from context_pass import prompts, runner
 from context_pass.agents import Deps, check_evidence, walk_evidence
 from context_pass.budget import (
     Chunk,
@@ -36,6 +34,8 @@ from context_pass.budget import (
 from context_pass.corpus import Corpus
 from context_pass.models import (
     EvidenceAudit,
+    SectionQuestions,
+    SectionThemes,
     ExpertPass,
     FirstPassContext,
     QuestionAsking,
@@ -43,11 +43,11 @@ from context_pass.models import (
     SectionPass,
     SectionQuestion,
     SourceFile,
-    StageUsage,
     UnitExtract,
     UnitExtractBatch,
     UnverifiedQuote,
 )
+from context_pass.runner import Stage
 from context_pass.sections import TITLES, eval_sections, section_number
 
 
@@ -66,39 +66,15 @@ class Config(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
 
 
-class Stage:
-    """Per-stage bookkeeping: usage, cache hits, and non-fatal failures."""
-
-    def __init__(self, name: str) -> None:
-        self.usage = StageUsage(stage=name)
-        self.warnings: list[str] = []
-
-    def record(self, result: Any) -> None:
-        usage = result.usage
-        self.usage.calls += 1
-        self.usage.input_tokens += usage.input_tokens or 0
-        self.usage.output_tokens += usage.output_tokens or 0
-        if usage.cost is not None:
-            self.usage.cost_usd = (self.usage.cost_usd or 0.0) + float(usage.cost)
-
-
-# --------------------------- cache + persistence ---------------------------
-
-
 def _schema_digest() -> str:
     return hashlib.sha256(
         json.dumps(FirstPassContext.model_json_schema(), sort_keys=True).encode()
     ).hexdigest()
 
 
-def _cache_key(cfg: Config, payload: str) -> str:
-    material = " ".join([cfg.model, prompts.prompt_digest(), _schema_digest(), payload])
-    return hashlib.sha256(material.encode()).hexdigest()[:32]
-
-
-def _write(path: Path, model: BaseModel) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(model.model_dump_json(indent=2))
+def _digests(stage_name: str) -> tuple[str, str]:
+    """Per-stage, so editing one stage's prompt does not invalidate the others' caches."""
+    return prompts.stage_digest(stage_name), _schema_digest()
 
 
 async def _call(
@@ -111,42 +87,10 @@ async def _call(
     stage: Stage,
     unit_id: str,
 ) -> BaseModel | None:
-    """One agent call, with cache, persistence, and non-fatal failure handling."""
-    stage_name = stage.usage.stage
-    cache_path = cfg.out_dir / ".cache" / stage_name / f"{_cache_key(cfg, prompt)}.json"
-    stage_path = cfg.out_dir / "stages" / stage_name / f"{unit_id}.json"
-
-    if cfg.use_cache and stage_name not in cfg.refresh and cache_path.exists():
-        stage.usage.cached_calls += 1
-        result = output_type.model_validate_json(cache_path.read_text())
-        _write(stage_path, result)
-        return result
-
-    messages: list[Any] = []
-    try:
-        with capture_run_messages() as messages:
-            result = await agent.run(prompt, deps=deps)
-    except Exception as exc:  # noqa: BLE001 - one bad unit must not sink the whole run
-        if cfg.fail_fast:
-            raise
-        stage.warnings.append(f"{stage_name}/{unit_id} failed: {type(exc).__name__}: {exc}")
-        failure = cfg.out_dir / "stages" / stage_name / f"{unit_id}.failure.json"
-        failure.parent.mkdir(parents=True, exist_ok=True)
-        failure.write_text(
-            json.dumps(
-                {
-                    "error": f"{type(exc).__name__}: {exc}",
-                    "messages": [str(m) for m in messages],
-                },
-                indent=2,
-            )
-        )
-        return None
-
-    stage.record(result)
-    _write(cache_path, result.output)
-    _write(stage_path, result.output)
-    return result.output
+    return await runner.call(
+        agent, prompt, deps, output_type,
+        cfg=cfg, stage=stage, unit_id=unit_id, digests=_digests(stage.usage.stage),
+    )
 
 
 # --------------------------- stage 1: extract ---------------------------
@@ -317,48 +261,81 @@ async def run_experts(
     return {e: r for e, r in results if r is not None}, stage
 
 
-async def run_sections(
+def _section_slugs(corpus: Corpus, cfg: Config) -> list[str]:
+    return [
+        s
+        for s in eval_sections()
+        if s in corpus.sections and (not cfg.only_sections or s in cfg.only_sections)
+    ]
+
+
+async def _run_section_stage(
     agents: dict[str, Agent],
     corpus: Corpus,
     extracts: list[UnitExtract],
     counter: TokenCounter,
     cfg: Config,
     deps: Deps,
-) -> tuple[list[SectionPass], Stage]:
-    stage = Stage("section")
-    semaphore = asyncio.Semaphore(cfg.concurrency)
-    slugs = [
-        s
-        for s in eval_sections()
-        if s in corpus.sections and (not cfg.only_sections or s in cfg.only_sections)
-    ]
+    *,
+    stage_name: str,
+    output_type: type[BaseModel],
+    header: str,
+) -> tuple[dict[str, BaseModel], Stage]:
+    """One reduce per section, for a single artifact.
 
-    async def one(slug: str) -> SectionPass | None:
+    The question stage and the theme stage share this shape but are separate calls with
+    separate agents, prompts, caches, and outputs. Keeping them apart means each can be
+    evaluated on its own, and neither spends the other's output budget.
+    """
+    stage = Stage(stage_name)
+    semaphore = asyncio.Semaphore(cfg.concurrency)
+
+    async def one(slug: str) -> tuple[str, BaseModel | None]:
         mine = [e for e in extracts if e.section_slug == slug]
         if not mine:
-            return None
+            return slug, None
         async with semaphore:
             result = await _reduce(
-                agents["section"],
+                agents[stage_name],
                 [_extract_payload(e) for e in mine],
-                f"Section '{slug}' ({TITLES.get(slug, slug)}). Below are the extracts for "
-                "each interviewee in this section. Deduplicate the questions across them "
-                "and identify the cross-interviewee themes. Number question ids "
-                f"q-{section_number(slug)}-NN.",
-                SectionPass,
+                header.format(slug=slug, title=TITLES.get(slug, slug),
+                              number=section_number(slug)),
+                output_type,
                 counter=counter,
                 cfg=cfg,
                 stage=stage,
                 deps=deps,
                 unit_id=slug,
             )
-        if result is not None:
-            result.section_slug = slug
-            result.title = TITLES.get(slug, slug)
-        return result
+        return slug, result
 
-    results = await asyncio.gather(*(one(s) for s in slugs))
-    return [r for r in results if r is not None], stage
+    results = await asyncio.gather(*(one(s) for s in _section_slugs(corpus, cfg)))
+    return {slug: r for slug, r in results if r is not None}, stage
+
+
+async def run_questions(agents, corpus, extracts, counter, cfg, deps):
+    return await _run_section_stage(
+        agents, corpus, extracts, counter, cfg, deps,
+        stage_name="question",
+        output_type=SectionQuestions,
+        header=(
+            "Section '{slug}' ({title}). Below are the extracts for each interviewee in "
+            "this section. Deduplicate the questions across them and point each asking at "
+            "the turn that answered it. Number question ids q-{number}-NN."
+        ),
+    )
+
+
+async def run_themes(agents, corpus, extracts, counter, cfg, deps):
+    return await _run_section_stage(
+        agents, corpus, extracts, counter, cfg, deps,
+        stage_name="theme",
+        output_type=SectionThemes,
+        header=(
+            "Section '{slug}' ({title}). Below are the extracts for each interviewee in "
+            "this section. Identify the themes across them."
+        ),
+    )
 
 
 # --------------------------- assembly ---------------------------
@@ -437,15 +414,6 @@ def audit_evidence(corpus: Corpus, context: FirstPassContext) -> EvidenceAudit:
     return audit
 
 
-def _git_sha() -> str | None:
-    try:
-        return subprocess.run(
-            ["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True
-        ).stdout.strip()
-    except Exception:  # noqa: BLE001
-        return None
-
-
 async def run(
     corpus: Corpus,
     agents: dict[str, Agent],
@@ -457,17 +425,39 @@ async def run(
 
     extracts, extract_stage, planned_calls = await run_extract(agents, corpus, counter, cfg, deps)
 
-    # Both reduces depend only on stage 1, so they run together.
-    (expert_passes, expert_stage), (sections, section_stage) = await asyncio.gather(
+    # All three reduces depend only on stage 1, so they run concurrently. They are separate
+    # stages rather than one call per section: question deduplication and answer pairing is
+    # its own job, evaluable on its own, and must not share an output budget with themes.
+    (
+        (expert_passes, expert_stage),
+        (question_results, question_stage),
+        (theme_results, theme_stage),
+    ) = await asyncio.gather(
         run_experts(agents, corpus, extracts, counter, cfg, deps),
-        run_sections(agents, corpus, extracts, counter, cfg, deps),
+        run_questions(agents, corpus, extracts, counter, cfg, deps),
+        run_themes(agents, corpus, extracts, counter, cfg, deps),
     )
+
+    sections = []
+    for slug in _section_slugs(corpus, cfg):
+        questions = question_results.get(slug)
+        themes = theme_results.get(slug)
+        if questions is None and themes is None:
+            continue
+        sections.append(
+            SectionPass(
+                section_slug=slug,
+                title=TITLES.get(slug, slug),
+                questions=questions.questions if questions else [],
+                themes=themes.themes if themes else [],
+            )
+        )
 
     roster_size = len(cfg.only_experts or corpus.experts)
     for section in sections:
         finalize_questions(section, roster_size)
 
-    stages = [extract_stage, expert_stage, section_stage]
+    stages = [extract_stage, expert_stage, question_stage, theme_stage]
     warnings = [w for s in stages for w in s.warnings]
     costs = [s.usage.cost_usd for s in stages if s.usage.cost_usd is not None]
 
@@ -480,7 +470,7 @@ async def run(
             corpus_digest=corpus.digest(),
             prompt_digest=prompts.prompt_digest(),
             schema_digest=_schema_digest(),
-            git_sha=_git_sha(),
+            git_sha=runner.git_sha(),
             roster=corpus.experts,
             sources=[
                 SourceFile(
@@ -495,7 +485,8 @@ async def run(
             call_plan={
                 "extract": planned_calls,
                 "expert": expert_stage.usage.calls + expert_stage.usage.cached_calls,
-                "section": section_stage.usage.calls + section_stage.usage.cached_calls,
+                "question": question_stage.usage.calls + question_stage.usage.cached_calls,
+                "theme": theme_stage.usage.calls + theme_stage.usage.cached_calls,
             },
             usage=[s.usage for s in stages],
             total_cost_usd=sum(costs) if costs else None,

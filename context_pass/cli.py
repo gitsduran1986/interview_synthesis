@@ -65,7 +65,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--refresh",
         action="append",
         default=[],
-        choices=["extract", "expert", "section", "all"],
+        choices=["extract", "expert", "question", "theme", "all"],
         help="Ignore cached results for a stage.",
     )
     parser.add_argument("--fail-fast", action="store_true")
@@ -120,8 +120,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"corpus:    {len(units)} files, {len(experts)} interviewees, {len(sections)} sections")
     print(f"input:     {total_tokens:,} tokens ({kind})")
     print(
-        f"call plan: {len(plan)} extract + {len(experts)} expert + {len(sections)} section "
-        f"= {len(plan) + len(experts) + len(sections)} calls"
+        f"call plan: {len(plan)} extract + {len(experts)} expert + {len(sections)} question "
+        f"+ {len(sections)} theme = {len(plan) + len(experts) + 2 * len(sections)} calls"
     )
 
     if args.dry_run:
@@ -134,7 +134,11 @@ def main(argv: list[str] | None = None) -> int:
         units_per_call=args.units_per_call,
         concurrency=args.concurrency,
         use_cache=not args.no_cache,
-        refresh={"extract", "expert", "section"} if "all" in args.refresh else set(args.refresh),
+        refresh=(
+            {"extract", "expert", "question", "theme"}
+            if "all" in args.refresh
+            else set(args.refresh)
+        ),
         fail_fast=args.fail_fast,
         out_dir=args.out,
         only_experts=args.only_experts,

@@ -22,8 +22,9 @@ from context_pass.models import (
     ExpertPass,
     ExpertTheme,
     QuestionAsking,
-    SectionPass,
     SectionQuestion,
+    SectionQuestions,
+    SectionThemes,
     UnitExtractBatch,
 )
 
@@ -99,7 +100,7 @@ def _question(qid, text, experts):
 
 
 def test_dedup_validator_flags_identical_questions():
-    section = SectionPass(
+    section = SectionQuestions(
         section_slug="06-cost-total-cost-of-ownership",
         questions=[
             _question("q-06-01", "How did TCO compare to budget?", ["expert-1"]),
@@ -120,7 +121,7 @@ def test_question_key_ignores_punctuation_and_case():
 
 
 def test_dedup_validator_allows_genuinely_different_questions():
-    section = SectionPass(
+    section = SectionQuestions(
         section_slug="06-cost-total-cost-of-ownership",
         questions=[
             _question("q-06-01", "How did TCO compare to budget?", ["expert-1"]),
@@ -135,12 +136,13 @@ def test_dedup_validator_allows_genuinely_different_questions():
 
 def test_all_agents_build_and_schemas_are_representable():
     agents = build_agents()
-    assert set(agents) == {"extract", "expert", "section"}
+    assert set(agents) == {"extract", "expert", "question", "theme"}
 
 
 @pytest.mark.parametrize(
     "name,expected",
-    [("extract", "UnitExtractBatch"), ("section", "SectionPass")],
+    [("extract", "UnitExtractBatch"), ("question", "SectionQuestions"),
+     ("theme", "SectionThemes")],
 )
 async def test_agents_run_end_to_end_against_testmodel(corpus, name, expected):
     """Proves each output type is schema-representable and the deps plumbing is wired."""
@@ -161,7 +163,7 @@ async def test_invented_evidence_never_survives_validation(corpus):
             await agents["expert"].run("go", deps=Deps(corpus=corpus))
 
 
-@pytest.mark.parametrize("model", [UnitExtractBatch, ExpertPass, SectionPass])
+@pytest.mark.parametrize("model", [UnitExtractBatch, ExpertPass, SectionQuestions, SectionThemes])
 def test_output_types_generate_valid_json_schemas(model):
     schema = model.model_json_schema()
     assert schema["type"] == "object"
@@ -206,3 +208,79 @@ async def test_validator_sends_a_bad_quote_back_then_accepts_a_good_one(corpus, 
     result = await agent.run("go", deps=Deps(corpus=corpus))
     assert calls["n"] == 2, "validator should have forced exactly one retry"
     assert result.output.evidence[0].quote == real_quotes["expert"]
+
+
+# --------------------------- stage separation ---------------------------
+
+
+def test_each_stage_has_its_own_prompt_digest():
+    """Editing one stage's prompt must not invalidate the other stages' caches."""
+    from context_pass import prompts
+
+    digests = {name: prompts.stage_digest(name) for name in prompts.STAGE_INSTRUCTIONS}
+    assert len(set(digests.values())) == len(digests)
+    assert set(digests) == {"extract", "expert", "question", "theme"}
+
+
+def test_question_and_theme_prompts_do_not_overlap_in_job():
+    """Each stage is told to do one job, so neither spends the other's output budget."""
+    from context_pass import prompts
+
+    assert "themes" not in prompts.QUESTION_INSTRUCTIONS.split("Do not produce")[0].lower()
+    assert "Do not produce themes" in prompts.QUESTION_INSTRUCTIONS
+    assert "another stage owns" in prompts.THEME_INSTRUCTIONS
+
+
+def _questions(section_slug, expert_slug, timestamp):
+    return SectionQuestions(
+        section_slug=section_slug,
+        questions=[
+            SectionQuestion(
+                question_id="q-06-01",
+                canonical_question="How did TCO compare to budget?",
+                asked_of=[
+                    QuestionAsking(
+                        expert_slug=expert_slug,
+                        as_asked="How did TCO compare to budget?",
+                        answered="answered",
+                        answer_timestamp=timestamp,
+                    )
+                ],
+            )
+        ],
+    )
+
+
+def test_answer_timestamp_must_point_at_a_real_interviewee_turn(corpus):
+    """The join key a later stage relies on is validated where it is created."""
+    from context_pass.agents import _timestamp_validator
+
+    section = "06-cost-total-cost-of-ownership"
+    unit = corpus.by_path(f"structured/{section}/expert-1.md")
+    real = next(t.timestamp for t in unit.turns if t.is_expert)
+
+    class Ctx:
+        pass
+
+    ctx = Ctx()
+    ctx.deps = Deps(corpus=corpus)
+
+    # A real answering turn passes.
+    assert _timestamp_validator(ctx, _questions(section, "expert-1", real)) is not None
+
+    # An invented one is sent back rather than silently detaching an answer downstream.
+    with pytest.raises(ModelRetry, match="not an interviewee turn"):
+        _timestamp_validator(ctx, _questions(section, "expert-1", "23:59:59"))
+
+
+def test_null_answer_timestamp_is_allowed(corpus):
+    """Better an honest null than a guessed timestamp."""
+    from context_pass.agents import _timestamp_validator
+
+    class Ctx:
+        pass
+
+    ctx = Ctx()
+    ctx.deps = Deps(corpus=corpus)
+    out = _questions("06-cost-total-cost-of-ownership", "expert-1", None)
+    assert _timestamp_validator(ctx, out) is out

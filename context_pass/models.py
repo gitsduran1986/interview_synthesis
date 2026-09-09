@@ -303,8 +303,27 @@ class ExpertPass(BaseModel):
     themes: list[ExpertTheme] = Field(min_length=1, max_length=10)
 
 
+class SectionQuestions(BaseModel):
+    """Output of the question stage: deduplicated questions and their answering turns.
+
+    Its own agent, and its own output type, so the deduplication and answer-pairing work can
+    be evaluated on its own rather than sharing a call (and an output budget) with theme
+    generation.
+    """
+
+    section_slug: str = ""
+    questions: list[SectionQuestion] = Field(default_factory=list, max_length=25)
+
+
+class SectionThemes(BaseModel):
+    """Output of the theme stage: what the interviewees collectively say in one section."""
+
+    section_slug: str = ""
+    themes: list[SectionTheme] = Field(default_factory=list, max_length=10)
+
+
 class SectionPass(BaseModel):
-    """Stage 2b output: one section's deduplicated questions and cross-interviewee themes."""
+    """Assembled in Python from the question and theme stages."""
 
     section_slug: str
     title: str = ""

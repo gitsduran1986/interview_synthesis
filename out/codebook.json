@@ -1,0 +1,1148 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-09-09T21:07:53.118994Z",
+  "source": "/Users/samduran/Desktop/Repos/interview_synthesis/out/first_pass_context.json",
+  "corpus_digest": "70c60b98ee5112fda0c070a72138f6ec69a81c8318d57cd7a53bf1aad5cf25fe",
+  "questions": [
+    {
+      "question_id": "q-02-01",
+      "section_id": "02-current-environment",
+      "canonical_question": "Can you walk me through how your organization uses the platform and which modules you have deployed?"
+    },
+    {
+      "question_id": "q-02-02",
+      "section_id": "02-current-environment",
+      "canonical_question": "What were the key drivers behind the decision to adopt the platform / move off the prior way of working?"
+    },
+    {
+      "question_id": "q-02-03",
+      "section_id": "02-current-environment",
+      "canonical_question": "Was that tied to a broader strategic initiative (e.g. digital transformation / tool consolidation), or was it mostly IT-driven?"
+    },
+    {
+      "question_id": "q-02-04",
+      "section_id": "02-current-environment",
+      "canonical_question": "What were the specific business needs that drove expansion into the additional modules (asset management, HR Service Delivery), and which module was GRSD?"
+    },
+    {
+      "question_id": "q-02-05",
+      "section_id": "02-current-environment",
+      "canonical_question": "Was the decision to expand into modules like asset management, HR, and GRC driven more by a top-down enterprise strategy, or by specific departments identifying pain points?"
+    },
+    {
+      "question_id": "q-02-06",
+      "section_id": "02-current-environment",
+      "canonical_question": "What makes a custom ITSM solution the right fit for Abzena today instead of a commercial platform?"
+    },
+    {
+      "question_id": "q-02-07",
+      "section_id": "02-current-environment",
+      "canonical_question": "What specific compliance/change-control capabilities does the new platform provide that the previous tool lacked?"
+    },
+    {
+      "question_id": "q-03-01",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "canonical_question": "What alternatives were you evaluating at the time of the selection?"
+    },
+    {
+      "question_id": "q-03-02",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "canonical_question": "What were your top purchasing criteria in that evaluation?"
+    },
+    {
+      "question_id": "q-03-03",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "canonical_question": "Beyond the first criterion you named, what were the other criteria?"
+    },
+    {
+      "question_id": "q-03-04",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "canonical_question": "Could you rank your top five criteria in strict priority order?"
+    },
+    {
+      "question_id": "q-03-05",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "canonical_question": "For your number one criterion, what evidence or demonstrations did vendors have to provide to prove they met it?"
+    },
+    {
+      "question_id": "q-03-06",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "canonical_question": "What ultimately tipped the decision in favor of the chosen vendor over the alternatives?"
+    },
+    {
+      "question_id": "q-03-07",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "canonical_question": "Was there one single factor behind the decision?"
+    },
+    {
+      "question_id": "q-03-08",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "canonical_question": "Was it integration, scalability, or customization that truly set ServiceNow apart from the rest?"
+    },
+    {
+      "question_id": "q-03-09",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "canonical_question": "On your top two priorities, where specifically did the alternatives fall short?"
+    },
+    {
+      "question_id": "q-03-10",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "canonical_question": "How significant was the price difference between ServiceNow and the alternatives?"
+    },
+    {
+      "question_id": "q-03-11",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "canonical_question": "What argument convinced finance to approve the significantly higher investment in ServiceNow?"
+    },
+    {
+      "question_id": "q-03-12",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "canonical_question": "How did ServiceNow perform against your number one criterion, integration capabilities, compared to competitors?"
+    },
+    {
+      "question_id": "q-03-13",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "canonical_question": "And how did the vendors compare on total cost of ownership?"
+    },
+    {
+      "question_id": "q-03-14",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "canonical_question": "And how did the vendors compare on user experience?"
+    },
+    {
+      "question_id": "q-03-15",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "canonical_question": "And how did the vendors compare on customization?"
+    },
+    {
+      "question_id": "q-04-01",
+      "section_id": "04-competitive-comparison",
+      "canonical_question": "On a 1 to 10 scale, how would you rate the vendors on integration capability?"
+    },
+    {
+      "question_id": "q-04-02",
+      "section_id": "04-competitive-comparison",
+      "canonical_question": "On a 1 to 10 scale, how would you rate the vendors on total cost of ownership / cost?"
+    },
+    {
+      "question_id": "q-04-03",
+      "section_id": "04-competitive-comparison",
+      "canonical_question": "On a 1 to 10 scale, how would you rate the vendors on ease of administration?"
+    },
+    {
+      "question_id": "q-04-04",
+      "section_id": "04-competitive-comparison",
+      "canonical_question": "On a 1 to 10 scale, how would you rate the vendors on compliance workflow support?"
+    },
+    {
+      "question_id": "q-04-05",
+      "section_id": "04-competitive-comparison",
+      "canonical_question": "On a 1 to 10 scale, how would you rate the vendors on ease of use?"
+    },
+    {
+      "question_id": "q-04-06",
+      "section_id": "04-competitive-comparison",
+      "canonical_question": "On a 1 to 10 scale, how would you rate the vendors on asset management depth?"
+    },
+    {
+      "question_id": "q-04-07",
+      "section_id": "04-competitive-comparison",
+      "canonical_question": "Where is the gap between your primary platform and its closest competitor the smallest, and on which criterion does that competitor come closest?"
+    },
+    {
+      "question_id": "q-04-08",
+      "section_id": "04-competitive-comparison",
+      "canonical_question": "On which specific criterion does BMC come closest to ServiceNow — user experience, cost, or something else?"
+    },
+    {
+      "question_id": "q-04-09",
+      "section_id": "04-competitive-comparison",
+      "canonical_question": "Other experts have named this platform's biggest vulnerability as X — does that match your experience?"
+    },
+    {
+      "question_id": "q-04-10",
+      "section_id": "04-competitive-comparison",
+      "canonical_question": "How do ServiceNow's overall capabilities compare to the alternatives you've evaluated — is its breadth truly unmatched?"
+    },
+    {
+      "question_id": "q-04-11",
+      "section_id": "04-competitive-comparison",
+      "canonical_question": "How does ServiceNow stack up against competitors on ease of use and day-to-day operational complexity for your team?"
+    },
+    {
+      "question_id": "q-04-12",
+      "section_id": "04-competitive-comparison",
+      "canonical_question": "Where do competitors have a distinct advantage / a genuine edge over the incumbent platform?"
+    },
+    {
+      "question_id": "q-04-13",
+      "section_id": "04-competitive-comparison",
+      "canonical_question": "Confirmation: competitors' advantages are lower cost, simplicity of user experience, and (for Jira) a growing focus on AI — is that right?"
+    },
+    {
+      "question_id": "q-04-14",
+      "section_id": "04-competitive-comparison",
+      "canonical_question": "Have ServiceNow's recent AI acquisitions like Moveworks closed the AI gap enough to stop a mid-sized company switching away today?"
+    },
+    {
+      "question_id": "q-04-15",
+      "section_id": "04-competitive-comparison",
+      "canonical_question": "What headcount was required to maintain the platform at Thermo Fisher's scale, and did that ongoing labor cost challenge the ROI?"
+    },
+    {
+      "question_id": "q-05-01",
+      "section_id": "05-implementation-integration",
+      "canonical_question": "What was your implementation/rollout experience like, and what were the biggest challenges?"
+    },
+    {
+      "question_id": "q-05-02",
+      "section_id": "05-implementation-integration",
+      "canonical_question": "How well did the platform integrate with your other core enterprise systems?"
+    },
+    {
+      "question_id": "q-05-03",
+      "section_id": "05-implementation-integration",
+      "canonical_question": "Did you use the vendor's integration hub/marketplace tooling, or was it mostly custom API work?"
+    },
+    {
+      "question_id": "q-05-04",
+      "section_id": "05-implementation-integration",
+      "canonical_question": "For your security tools and SAP integrations specifically, did you rely on custom development or were there out-of-the-box connectors that made it easier?"
+    },
+    {
+      "question_id": "q-05-05",
+      "section_id": "05-implementation-integration",
+      "canonical_question": "Is the ambiguity over scope typically a failure of the implementation partner to set clear boundaries, or is it inherent to a highly customizable platform where scope creep is inevitable?"
+    },
+    {
+      "question_id": "q-05-06",
+      "section_id": "05-implementation-integration",
+      "canonical_question": "You mentioned end-user resistance to the new interface. How did that manifest, and how did you address it?"
+    },
+    {
+      "question_id": "q-06-01",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "canonical_question": "How did total cost of ownership compare to what you initially budgeted/expected (and to the alternatives you evaluated)?"
+    },
+    {
+      "question_id": "q-06-02",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "canonical_question": "How did the TCO compare to the TCO of the alternatives (e.g., BMC or Jira)?"
+    },
+    {
+      "question_id": "q-06-03",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "canonical_question": "How did that final TCO compare to what you had budgeted or expected at the beginning of the project?"
+    },
+    {
+      "question_id": "q-06-04",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "canonical_question": "Confirmation: TCO ended up roughly 20-30% higher than initial expectations, primarily due to underestimating internal labor for testing and validation — is that accurate?"
+    },
+    {
+      "question_id": "q-06-05",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "canonical_question": "What was the single biggest contributor to the cost variance — implementation services, ongoing admin costs, or licensing?"
+    },
+    {
+      "question_id": "q-06-06",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "canonical_question": "Can you give a rough sense of per-user/per-agent pricing, or how it compared to the alternatives you evaluated?"
+    },
+    {
+      "question_id": "q-06-07",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "canonical_question": "Were there any licensing surprises or unexpected costs — modules or features you assumed were included that turned out to be add-ons?"
+    },
+    {
+      "question_id": "q-06-08",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "canonical_question": "Confirmation: the main surprises were licensing — modules like GRC and parts of change management turned out to be additional line items. Is that correct?"
+    },
+    {
+      "question_id": "q-06-09",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "canonical_question": "Besides the GRC module surprise, did you encounter what some call the approver tax?"
+    },
+    {
+      "question_id": "q-06-10",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "canonical_question": "Did you have to purchase separate licenses for managers whose only role was to approve requests?"
+    },
+    {
+      "question_id": "q-06-11",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "canonical_question": "Did having to purchase those approver licenses come as a surprise, or was it expected?"
+    },
+    {
+      "question_id": "q-06-12",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "canonical_question": "Did you run into unexpected costs for additional non-production instances to support testing?"
+    },
+    {
+      "question_id": "q-06-13",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "canonical_question": "Could you elaborate on that — what was the situation there?"
+    },
+    {
+      "question_id": "q-06-14",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "canonical_question": "Confirmation: it was about the unexpected number of people needing access for testing rather than purchasing separate non-production environments. Is that correct?"
+    },
+    {
+      "question_id": "q-06-15",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "canonical_question": "How has renewal pricing trended since the initial contract — did you face the typical annual increase or negotiate it down?"
+    },
+    {
+      "question_id": "q-07-01",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "canonical_question": "On a scale, how likely are you to continue using [the platform] over the next three years?"
+    },
+    {
+      "question_id": "q-07-02",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "canonical_question": "On a 0 to 10 scale, how likely would you be to recommend the platform to a peer at another/similar organization?"
+    },
+    {
+      "question_id": "q-07-03",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "canonical_question": "What do you see as the platform's biggest strengths?"
+    },
+    {
+      "question_id": "q-07-04",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "canonical_question": "And what are its biggest weaknesses or pain points?"
+    },
+    {
+      "question_id": "q-07-05",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "canonical_question": "Can you give a specific example of when one of those weaknesses caused a real business impact?"
+    },
+    {
+      "question_id": "q-07-06",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "canonical_question": "Was that weakness inherent to the platform, or something that better implementation/configuration/training could have addressed?"
+    },
+    {
+      "question_id": "q-07-07",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "canonical_question": "Some experts say ServiceNow's cost and complexity are offset by superior functionality and long-term ROI, and that usability issues stem from poor implementation rather than platform limitations — does that resonate with your experience?"
+    },
+    {
+      "question_id": "q-07-08",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "canonical_question": "Do alternative platforms replace basic ticketing but struggle to replicate complex back-end capabilities like asset management and CMDB, forcing companies back to ServiceNow?"
+    },
+    {
+      "question_id": "q-07-09",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "canonical_question": "Was your high renewal score driven by genuine satisfaction with capabilities, or by switching being too daunting after a long implementation and custom integrations?"
+    },
+    {
+      "question_id": "q-07-10",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "canonical_question": "How would you characterize the actual difficulty of migrating to an alternative platform if leadership decided to do so?"
+    },
+    {
+      "question_id": "q-08-01",
+      "section_id": "08-switching-dynamics",
+      "canonical_question": "How difficult would it be to migrate away from your current ITSM platform if leadership decided to?"
+    },
+    {
+      "question_id": "q-08-02",
+      "section_id": "08-switching-dynamics",
+      "canonical_question": "What specifically makes switching so difficult - technical complexity of unwinding integrations, organizational change management, data migration, or something else?"
+    },
+    {
+      "question_id": "q-08-03",
+      "section_id": "08-switching-dynamics",
+      "canonical_question": "What would be the trigger that would make you seriously evaluate switching away?"
+    },
+    {
+      "question_id": "q-08-04",
+      "section_id": "08-switching-dynamics",
+      "canonical_question": "Hypothetically, what would your vendor need to do, or fail to do, over the next 2 years that would make you seriously evaluate an alternative like Atlassian or Freshservice?"
+    },
+    {
+      "question_id": "q-08-05",
+      "section_id": "08-switching-dynamics",
+      "canonical_question": "Confirmation: would a competitor offering a significantly lower price, faster implementation with a clear data migration path, and a compelling AI story be enough to make you seriously consider switching despite the high barriers?"
+    },
+    {
+      "question_id": "q-08-06",
+      "section_id": "08-switching-dynamics",
+      "canonical_question": "If you were to switch, which alternative would you evaluate first, and why?"
+    }
+  ],
+  "anchors": [
+    {
+      "question_id": "q-02-01",
+      "section_id": "02-current-environment",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:01:53"
+    },
+    {
+      "question_id": "q-02-01",
+      "section_id": "02-current-environment",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:01:47"
+    },
+    {
+      "question_id": "q-02-01",
+      "section_id": "02-current-environment",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:01:44"
+    },
+    {
+      "question_id": "q-02-02",
+      "section_id": "02-current-environment",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:03:10"
+    },
+    {
+      "question_id": "q-02-02",
+      "section_id": "02-current-environment",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:02:43"
+    },
+    {
+      "question_id": "q-02-02",
+      "section_id": "02-current-environment",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:02:29"
+    },
+    {
+      "question_id": "q-02-03",
+      "section_id": "02-current-environment",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:04:43"
+    },
+    {
+      "question_id": "q-02-03",
+      "section_id": "02-current-environment",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:03:36"
+    },
+    {
+      "question_id": "q-02-03",
+      "section_id": "02-current-environment",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:03:07"
+    },
+    {
+      "question_id": "q-02-04",
+      "section_id": "02-current-environment",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:05:46"
+    },
+    {
+      "question_id": "q-02-05",
+      "section_id": "02-current-environment",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:07:24"
+    },
+    {
+      "question_id": "q-02-06",
+      "section_id": "02-current-environment",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:08:55"
+    },
+    {
+      "question_id": "q-02-07",
+      "section_id": "02-current-environment",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:11:51"
+    },
+    {
+      "question_id": "q-02-07",
+      "section_id": "02-current-environment",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:04:20"
+    },
+    {
+      "question_id": "q-03-01",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:13:18"
+    },
+    {
+      "question_id": "q-03-01",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:05:19"
+    },
+    {
+      "question_id": "q-03-01",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:03:43"
+    },
+    {
+      "question_id": "q-03-02",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:14:11"
+    },
+    {
+      "question_id": "q-03-02",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:05:44"
+    },
+    {
+      "question_id": "q-03-02",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:04:10"
+    },
+    {
+      "question_id": "q-03-03",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:14:20"
+    },
+    {
+      "question_id": "q-03-04",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:15:42"
+    },
+    {
+      "question_id": "q-03-04",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:06:28"
+    },
+    {
+      "question_id": "q-03-04",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:04:50"
+    },
+    {
+      "question_id": "q-03-05",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:16:36"
+    },
+    {
+      "question_id": "q-03-05",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:07:14"
+    },
+    {
+      "question_id": "q-03-06",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:17:35"
+    },
+    {
+      "question_id": "q-03-06",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:08:09"
+    },
+    {
+      "question_id": "q-03-06",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:05:24"
+    },
+    {
+      "question_id": "q-03-07",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:18:08"
+    },
+    {
+      "question_id": "q-03-08",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:18:21"
+    },
+    {
+      "question_id": "q-03-09",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:19:36"
+    },
+    {
+      "question_id": "q-03-10",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:20:59"
+    },
+    {
+      "question_id": "q-03-11",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:21:44"
+    },
+    {
+      "question_id": "q-03-12",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:24:02"
+    },
+    {
+      "question_id": "q-03-13",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:24:42"
+    },
+    {
+      "question_id": "q-03-14",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:25:08"
+    },
+    {
+      "question_id": "q-03-15",
+      "section_id": "03-vendor-selection-decision-criteria",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:25:51"
+    },
+    {
+      "question_id": "q-04-01",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:09:15"
+    },
+    {
+      "question_id": "q-04-01",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:07:36"
+    },
+    {
+      "question_id": "q-04-02",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:09:39"
+    },
+    {
+      "question_id": "q-04-02",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:06:38"
+    },
+    {
+      "question_id": "q-04-03",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:10:03"
+    },
+    {
+      "question_id": "q-04-04",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:10:35"
+    },
+    {
+      "question_id": "q-04-05",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:06:12"
+    },
+    {
+      "question_id": "q-04-06",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:07:00"
+    },
+    {
+      "question_id": "q-04-07",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:26:34"
+    },
+    {
+      "question_id": "q-04-07",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:11:17"
+    },
+    {
+      "question_id": "q-04-07",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:08:08"
+    },
+    {
+      "question_id": "q-04-08",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:26:46"
+    },
+    {
+      "question_id": "q-04-09",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:27:32"
+    },
+    {
+      "question_id": "q-04-09",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:11:58"
+    },
+    {
+      "question_id": "q-04-09",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:08:50"
+    },
+    {
+      "question_id": "q-04-10",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:27:52"
+    },
+    {
+      "question_id": "q-04-11",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:29:09"
+    },
+    {
+      "question_id": "q-04-12",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:29:54"
+    },
+    {
+      "question_id": "q-04-12",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:12:33"
+    },
+    {
+      "question_id": "q-04-12",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:09:22"
+    },
+    {
+      "question_id": "q-04-13",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:31:02"
+    },
+    {
+      "question_id": "q-04-14",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:31:33"
+    },
+    {
+      "question_id": "q-04-15",
+      "section_id": "04-competitive-comparison",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:32:29"
+    },
+    {
+      "question_id": "q-05-01",
+      "section_id": "05-implementation-integration",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:33:28"
+    },
+    {
+      "question_id": "q-05-01",
+      "section_id": "05-implementation-integration",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:13:20"
+    },
+    {
+      "question_id": "q-05-01",
+      "section_id": "05-implementation-integration",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:10:00"
+    },
+    {
+      "question_id": "q-05-02",
+      "section_id": "05-implementation-integration",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:34:45"
+    },
+    {
+      "question_id": "q-05-02",
+      "section_id": "05-implementation-integration",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:14:14"
+    },
+    {
+      "question_id": "q-05-02",
+      "section_id": "05-implementation-integration",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:10:38"
+    },
+    {
+      "question_id": "q-05-03",
+      "section_id": "05-implementation-integration",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:35:39"
+    },
+    {
+      "question_id": "q-05-03",
+      "section_id": "05-implementation-integration",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:15:08"
+    },
+    {
+      "question_id": "q-05-03",
+      "section_id": "05-implementation-integration",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:11:23"
+    },
+    {
+      "question_id": "q-05-04",
+      "section_id": "05-implementation-integration",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:36:15"
+    },
+    {
+      "question_id": "q-05-05",
+      "section_id": "05-implementation-integration",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:37:27"
+    },
+    {
+      "question_id": "q-05-06",
+      "section_id": "05-implementation-integration",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:15:39"
+    },
+    {
+      "question_id": "q-06-01",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:39:08"
+    },
+    {
+      "question_id": "q-06-01",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:16:29"
+    },
+    {
+      "question_id": "q-06-01",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:12:04"
+    },
+    {
+      "question_id": "q-06-02",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:39:27"
+    },
+    {
+      "question_id": "q-06-03",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:39:50"
+    },
+    {
+      "question_id": "q-06-04",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:40:30"
+    },
+    {
+      "question_id": "q-06-05",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:40:48"
+    },
+    {
+      "question_id": "q-06-06",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:17:00"
+    },
+    {
+      "question_id": "q-06-06",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:12:30"
+    },
+    {
+      "question_id": "q-06-07",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:41:13"
+    },
+    {
+      "question_id": "q-06-07",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:17:44"
+    },
+    {
+      "question_id": "q-06-07",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:13:03"
+    },
+    {
+      "question_id": "q-06-08",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:42:05"
+    },
+    {
+      "question_id": "q-06-09",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:42:27"
+    },
+    {
+      "question_id": "q-06-10",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:42:41"
+    },
+    {
+      "question_id": "q-06-11",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:43:12"
+    },
+    {
+      "question_id": "q-06-12",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:43:29"
+    },
+    {
+      "question_id": "q-06-13",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:43:38"
+    },
+    {
+      "question_id": "q-06-14",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:44:12"
+    },
+    {
+      "question_id": "q-06-15",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:44:32"
+    },
+    {
+      "question_id": "q-06-15",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:18:16"
+    },
+    {
+      "question_id": "q-06-15",
+      "section_id": "06-cost-total-cost-of-ownership",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:13:29"
+    },
+    {
+      "question_id": "q-07-01",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:44:58"
+    },
+    {
+      "question_id": "q-07-01",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:19:00"
+    },
+    {
+      "question_id": "q-07-01",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:14:04"
+    },
+    {
+      "question_id": "q-07-02",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:45:16"
+    },
+    {
+      "question_id": "q-07-02",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:19:13"
+    },
+    {
+      "question_id": "q-07-02",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:14:16"
+    },
+    {
+      "question_id": "q-07-03",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:45:30"
+    },
+    {
+      "question_id": "q-07-03",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:19:27"
+    },
+    {
+      "question_id": "q-07-03",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:14:29"
+    },
+    {
+      "question_id": "q-07-04",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:46:14"
+    },
+    {
+      "question_id": "q-07-04",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:19:49"
+    },
+    {
+      "question_id": "q-07-04",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:14:46"
+    },
+    {
+      "question_id": "q-07-05",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:46:58"
+    },
+    {
+      "question_id": "q-07-05",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:20:23"
+    },
+    {
+      "question_id": "q-07-05",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:15:13"
+    },
+    {
+      "question_id": "q-07-06",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:48:05"
+    },
+    {
+      "question_id": "q-07-06",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:20:51"
+    },
+    {
+      "question_id": "q-07-06",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:15:44"
+    },
+    {
+      "question_id": "q-07-07",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:48:53"
+    },
+    {
+      "question_id": "q-07-08",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:49:35"
+    },
+    {
+      "question_id": "q-07-09",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:50:20"
+    },
+    {
+      "question_id": "q-07-10",
+      "section_id": "07-platform-satisfaction-loyalty",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:51:30"
+    },
+    {
+      "question_id": "q-08-01",
+      "section_id": "08-switching-dynamics",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:52:09"
+    },
+    {
+      "question_id": "q-08-01",
+      "section_id": "08-switching-dynamics",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:21:29"
+    },
+    {
+      "question_id": "q-08-01",
+      "section_id": "08-switching-dynamics",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:16:18"
+    },
+    {
+      "question_id": "q-08-02",
+      "section_id": "08-switching-dynamics",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:53:07"
+    },
+    {
+      "question_id": "q-08-03",
+      "section_id": "08-switching-dynamics",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:53:37"
+    },
+    {
+      "question_id": "q-08-03",
+      "section_id": "08-switching-dynamics",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:21:59"
+    },
+    {
+      "question_id": "q-08-03",
+      "section_id": "08-switching-dynamics",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:16:44"
+    },
+    {
+      "question_id": "q-08-04",
+      "section_id": "08-switching-dynamics",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:54:19"
+    },
+    {
+      "question_id": "q-08-05",
+      "section_id": "08-switching-dynamics",
+      "expert_slug": "expert-1",
+      "answer_timestamp": "00:55:01"
+    },
+    {
+      "question_id": "q-08-06",
+      "section_id": "08-switching-dynamics",
+      "expert_slug": "expert-2",
+      "answer_timestamp": "00:22:27"
+    },
+    {
+      "question_id": "q-08-06",
+      "section_id": "08-switching-dynamics",
+      "expert_slug": "expert-3",
+      "answer_timestamp": "00:17:11"
+    }
+  ]
+}

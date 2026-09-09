@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interview Synthesis</title>
+<style>
+  :root {
+    --bg: #fbfaf8; --panel: #fff; --ink: #1c1a17; --muted: #6b6560; --line: #e6e1da;
+    --accent: #7c4a2d; --warn: #b4541f; --ok: #3f6b4a; --chip: #f2ede6;
+    --bar: #c9b8a4; --bar-strong: #8a6b4d;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  a { color: var(--accent); }
+  header { border-bottom: 1px solid var(--line); background: var(--panel); position: sticky;
+    top: 0; z-index: 10; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+  .top { display: flex; align-items: baseline; gap: 18px; padding: 16px 0 0; flex-wrap: wrap; }
+  h1 { font-size: 17px; margin: 0; letter-spacing: -0.01em; }
+  .stats { color: var(--muted); font-size: 13px; margin-left: auto; }
+  .stats b { color: var(--ok); font-weight: 600; }
+  nav { display: flex; gap: 4px; padding: 12px 0 0; }
+  nav button { border: 0; background: none; font: inherit; font-size: 14px; color: var(--muted);
+    padding: 8px 14px; border-radius: 6px 6px 0 0; cursor: pointer; border-bottom: 2px solid transparent; }
+  nav button:hover { color: var(--ink); }
+  nav button[aria-selected="true"] { color: var(--ink); font-weight: 600;
+    border-bottom-color: var(--accent); }
+  main { padding: 28px 0 80px; }
+
+  /* drop zone */
+  .drop { max-width: 620px; margin: 90px auto; padding: 54px 32px; text-align: center;
+    border: 2px dashed var(--line); border-radius: 14px; background: var(--panel); }
+  .drop.over { border-color: var(--accent); background: #fff8f2; }
+  .drop h2 { margin: 0 0 8px; font-size: 19px; }
+  .drop p { color: var(--muted); margin: 6px 0; font-size: 14px; }
+  .drop code { background: var(--chip); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+
+  /* matrix */
+  .sect { margin: 0 0 10px; font-size: 12px; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--muted); font-weight: 700; padding-top: 22px; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 600;
+    padding: 0 10px 10px; vertical-align: bottom; }
+  thead th .who { color: var(--ink); font-size: 14px; font-weight: 700; display: block; }
+  thead th .role { font-weight: 400; display: block; margin-top: 2px; line-height: 1.35; }
+  tbody tr { border-top: 1px solid var(--line); cursor: pointer; }
+  tbody tr:hover { background: #fff; }
+  tbody tr.sel { background: #fff; box-shadow: inset 3px 0 0 var(--accent); }
+  td { padding: 11px 10px; vertical-align: top; }
+  td.topic { font-size: 14px; max-width: 330px; }
+  td.cell { width: 150px; }
+  .bar { height: 6px; border-radius: 3px; background: var(--bar); margin-bottom: 4px; }
+  .wc { font-size: 11px; color: var(--muted); }
+  .none { font-size: 12px; color: #b3aca4; font-style: italic; }
+  td.flag { width: 108px; text-align: right; font-size: 12px; white-space: nowrap; }
+  .tag-conflict { color: var(--warn); font-weight: 600; }
+  .tag-all { color: var(--ok); }
+  .tag-part { color: var(--muted); }
+
+  /* detail */
+  .detail { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 24px 26px; margin-top: 22px; }
+  .detail h2 { margin: 0 0 4px; font-size: 19px; line-height: 1.35; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .quote { border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; margin: 18px 0;
+    font-size: 17px; line-height: 1.5; }
+  .quote .attr { display: block; font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .block { margin: 22px 0 0; }
+  .block h3 { font-size: 12px; letter-spacing: .09em; text-transform: uppercase;
+    margin: 0 0 10px; color: var(--muted); }
+  .item { border: 1px solid var(--line); border-radius: 9px; padding: 14px 16px; margin-bottom: 10px; }
+  .item.conflict { border-left: 3px solid var(--warn); }
+  .item.agree { border-left: 3px solid var(--ok); }
+  .item .stmt { font-weight: 600; margin-bottom: 4px; }
+  .why { font-size: 13px; color: var(--muted); margin-top: 9px; padding-top: 9px;
+    border-top: 1px dashed var(--line); }
+  .pos { display: grid; grid-template-columns: 92px 1fr; gap: 10px; margin-top: 9px; font-size: 14px; }
+  .pos .n { font-weight: 600; font-size: 13px; }
+  .pos .said { font-size: 13px; color: var(--muted); font-style: italic; margin-top: 3px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { background: var(--chip); border-radius: 20px; padding: 3px 11px; font-size: 12px;
+    color: var(--muted); }
+  ul.plain { margin: 0; padding-left: 18px; }
+  ul.plain li { margin-bottom: 6px; font-size: 14px; }
+  .verbatim { font-size: 14px; white-space: pre-wrap; margin-top: 6px; }
+  .cellbox { border: 1px solid var(--line); border-radius: 9px; padding: 14px 16px; margin-bottom: 10px; }
+  .cellbox .n { font-weight: 600; font-size: 13px; margin-bottom: 2px; }
+  .src { font-size: 11px; color: #b3aca4; margin-top: 8px; font-family: ui-monospace, monospace; }
+  .find { border: 1px solid var(--line); border-radius: 9px; padding: 16px 18px; margin-bottom: 12px;
+    background: var(--panel); }
+  .find .kind { font-size: 11px; letter-spacing: .07em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700; }
+  .find .conf { float: right; font-size: 11px; color: var(--muted); }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+  .muted { color: var(--muted); }
+  .note { font-size: 13px; color: var(--muted); background: var(--chip); padding: 10px 14px;
+    border-radius: 8px; margin-bottom: 18px; }
+</style>
+</head>
+<body>
+
+<div id="drop" class="drop">
+  <h2>Interview Synthesis</h2>
+  <p>Run <code>uv run synthesize</code>, then reopen this page.</p>
+  <p class="muted">Or drop <code>out/synthesis.json</code> here.</p>
+  <p class="muted" style="margin-top:18px">
+    Or serve the repo and it loads automatically:<br>
+    <code>python3 -m http.server</code> → <code>localhost:8000/ui/</code>
+  </p>
+  <p id="err" class="muted" style="color:#b4541f"></p>
+</div>
+
+<div id="app" hidden>
+  <header>
+    <div class="wrap">
+      <div class="top">
+        <h1>Interview Synthesis</h1>
+        <span class="stats" id="stats"></span>
+      </div>
+      <nav id="nav">
+        <button data-view="matrix" aria-selected="true">Matrix</button>
+        <button data-view="findings" aria-selected="false">Findings</button>
+        <button data-view="people" aria-selected="false">People</button>
+      </nav>
+    </div>
+  </header>
+  <main class="wrap" id="main"></main>
+</div>
+
+<script src="data.js" onerror="window.SYNTHESIS_MISSING = true"></script>
+<script>
+let DATA = null;
+
+/* ---------- loading ---------- */
+const drop = document.getElementById('drop');
+['dragover','dragenter'].forEach(e => drop.addEventListener(e, ev => {
+  ev.preventDefault(); drop.classList.add('over');
+}));
+['dragleave','drop'].forEach(e => drop.addEventListener(e, () => drop.classList.remove('over')));
+drop.addEventListener('drop', ev => {
+  ev.preventDefault();
+  const file = ev.dataTransfer.files[0];
+  if (!file) return;
+  file.text().then(t => start(JSON.parse(t))).catch(e => show(e.message));
+});
+drop.addEventListener('click', () => {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = () => input.files[0].text().then(t => start(JSON.parse(t)));
+  input.click();
+});
+function show(msg) { document.getElementById('err').textContent = msg; }
+
+
+function start(data) {
+  DATA = data;
+  drop.hidden = true;
+  document.getElementById('app').hidden = false;
+  const c = data.run.counts || {};
+  const cites = countCitations();
+  document.getElementById('stats').innerHTML =
+    `${c.rows} interviewees · ${threads().length} topics · ` +
+    `${sum(s => s.agreements.length)} agreements · ${sum(s => s.conflicts.length)} conflicts · ` +
+    `<b>${cites} quotes verified</b>`;
+  render('matrix');
+}
+
+/* ---------- helpers ---------- */
+const sum = f => DATA.columns_synthesis.reduce((n, s) => n + f(s), 0);
+const threads = () => DATA.columns.filter(c => c.grain === 'thread')
+  .sort((a, b) => a.section_id.localeCompare(b.section_id) || a.order - b.order);
+const cellOf = (col, row) => DATA.cells.find(c =>
+  c.grain === 'thread' && c.column_id === col && c.row_id === row);
+const synOf = id => DATA.columns_synthesis.find(s => s.column_id === id && s.grain === 'thread');
+const rowOf = id => DATA.rows.find(r => r.row_id === id);
+const esc = s => (s ?? '').replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+const sectionName = id => id.replace(/^\d+-/, '').replace(/-/g, ' ')
+  .replace(/\b\w/g, m => m.toUpperCase());
+function countCitations() {
+  let n = 0;
+  const walk = v => {
+    if (!v || typeof v !== 'object') return;
+    if (v.quote && v.cell_id) n++;
+    Object.values(v).forEach(walk);
+  };
+  [DATA.columns_synthesis, DATA.cases, DATA.findings].forEach(walk);
+  return n;
+}
+
+/* ---------- views ---------- */
+document.getElementById('nav').addEventListener('click', e => {
+  if (e.target.tagName !== 'BUTTON') return;
+  [...e.currentTarget.children].forEach(b =>
+    b.setAttribute('aria-selected', String(b === e.target)));
+  render(e.target.dataset.view);
+});
+
+function render(view, arg) {
+  const main = document.getElementById('main');
+  main.innerHTML = ({ matrix: matrixView, findings: findingsView, people: peopleView })[view]();
+  if (view === 'matrix') {
+    main.querySelectorAll('tbody tr').forEach(tr => tr.onclick = () => openColumn(tr.dataset.col));
+    const first = threads()[0];
+    if (first) openColumn(first.column_id);
+  }
+  window.scrollTo(0, 0);
+}
+
+function matrixView() {
+  const rows = DATA.rows;
+  let html = `<div class="note">Rows are topics, columns are people — the Framework Method
+    matrix, turned on its side to fit a screen. Bars show how much each person said.
+    Click any row.</div><div id="grid">`;
+  let section = null;
+  html += `<table><thead><tr><th style="width:330px"></th>` +
+    rows.map(r => `<th><span class="who">${esc(r.display_name || r.row_id)}</span>
+      <span class="role">${esc((r.ui_statement || '').slice(0, 62))}…</span></th>`).join('') +
+    `<th></th></tr></thead>`;
+  for (const col of threads()) {
+    if (col.section_id !== section) {
+      section = col.section_id;
+      html += `</tbody><tbody><tr style="cursor:default"><td colspan="${rows.length + 2}"
+        class="sect">${esc(sectionName(section))}</td></tr>`;
+    }
+    const syn = synOf(col.column_id);
+    const conflicts = syn ? syn.conflicts.length : 0;
+    const max = Math.max(...rows.map(r => (cellOf(col.column_id, r.row_id) || {}).word_count || 0), 1);
+    html += `<tr data-col="${col.column_id}"><td class="topic">${esc(col.label)}</td>` +
+      rows.map(r => {
+        const cell = cellOf(col.column_id, r.row_id);
+        if (!cell || !cell.text) {
+          return `<td class="cell"><span class="none">${esc((cell || {}).status || 'not asked')
+            .replace('_', ' ')}</span></td>`;
+        }
+        const w = Math.max(12, Math.round(cell.word_count / max * 100));
+        return `<td class="cell"><div class="bar" style="width:${w}%"></div>
+          <span class="wc">${cell.word_count}w</span></td>`;
+      }).join('') +
+      `<td class="flag">${conflicts
+        ? `<span class="tag-conflict">⚡ ${conflicts} conflict${conflicts > 1 ? 's' : ''}</span>`
+        : col.respondent_count === rows.length
+          ? '<span class="tag-all">✓ all</span>'
+          : `<span class="tag-part">${col.respondent_count} of ${rows.length}</span>`}</td></tr>`;
+  }
+  return html + `</tbody></table></div><div id="detail"></div>`;
+}
+
+function openColumn(id) {
+  document.querySelectorAll('tbody tr').forEach(tr =>
+    tr.classList.toggle('sel', tr.dataset.col === id));
+  const col = DATA.columns.find(c => c.column_id === id && c.grain === 'thread');
+  const syn = synOf(id);
+  const q = syn && syn.canonical_quote;
+
+  let html = `<div class="detail"><h2>${esc(col.label)}</h2>
+    <div class="sub">${sectionName(col.section_id)} · ${col.respondent_count} of
+    ${DATA.rows.length} answered · covers ${col.member_question_ids.length}
+    question${col.member_question_ids.length > 1 ? 's' : ''}</div>`;
+
+  if (q) {
+    html += `<div class="quote">“${esc(q.quote)}”
+      <span class="attr">— ${esc(rowOf(q.row_id)?.display_name || q.row_id)}</span></div>`;
+  }
+  if (syn) html += `<p>${esc(syn.headline)}</p>`;
+
+  if (syn && syn.conflicts.length) {
+    html += `<div class="block"><h3>Conflicts</h3>` + syn.conflicts.map(c => `
+      <div class="item conflict"><div class="stmt">${esc(c.statement)}</div>
+        <div class="muted" style="font-size:12px">${c.nature}</div>
+        ${c.positions.map(p => `<div class="pos"><div class="n">${esc(p.row_id)}</div>
+          <div>${esc(p.gist)}${p.citation
+            ? `<div class="said">“${esc(p.citation.quote.slice(0, 150))}”</div>` : ''}</div></div>`).join('')}
+        ${c.explains_it ? `<div class="why"><b>Why:</b> ${esc(c.explains_it)}</div>` : ''}
+      </div>`).join('') + `</div>`;
+  }
+  if (syn && syn.agreements.length) {
+    html += `<div class="block"><h3>Agreements</h3>` + syn.agreements.map(a => `
+      <div class="item agree"><div class="stmt">${esc(a.statement)}</div>
+        <div class="muted" style="font-size:12px">${a.strength}</div>
+        <div class="chips" style="margin-top:8px">${a.positions
+          .map(p => `<span class="chip">${esc(p.row_id)}</span>`).join('')}</div>
+      </div>`).join('') + `</div>`;
+  }
+  if (syn && syn.notable.length) {
+    html += `<div class="block"><h3>Also worth seeing</h3><ul class="plain">` +
+      syn.notable.map(n => `<li>${esc(n)}</li>`).join('') + `</ul></div>`;
+  }
+  if (syn && syn.gaps.length) {
+    html += `<div class="block"><h3>Gaps</h3><ul class="plain">` +
+      syn.gaps.map(g => `<li class="muted">${esc(g)}</li>`).join('') + `</ul></div>`;
+  }
+
+  html += `<div class="block"><h3>What each person said</h3>` + DATA.rows.map(r => {
+    const cell = cellOf(id, r.row_id);
+    if (!cell || !cell.text) {
+      return `<div class="cellbox"><div class="n">${esc(r.display_name || r.row_id)}</div>
+        <span class="none">${esc(cell ? cell.status.replace('_', ' ') : 'not asked')}</span></div>`;
+    }
+    return `<div class="cellbox"><div class="n">${esc(r.display_name || r.row_id)}
+      <span class="muted" style="font-weight:400">· ${cell.word_count} words</span></div>
+      <div class="verbatim">${esc(cell.text)}</div>
+      <div class="src">${esc(cell.cell_id)} · ${cell.sources.map(s => s.unit_id.split('/').pop()
+        + ' turn ' + s.turn_index).join(', ')}</div></div>`;
+  }).join('') + `</div></div>`;
+
+  document.getElementById('detail').innerHTML = html;
+  document.getElementById('detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function findingsView() {
+  return `<div class="note">Findings that need more than one topic or more than one person to
+    see. Each says how well evidenced it is — with three interviewees, most are readings
+    rather than demonstrations.</div>` +
+    DATA.findings.map(f => `<div class="find">
+      <span class="conf">${esc(f.confidence.replace(/_/g, ' '))}</span>
+      <div class="kind">${esc(f.kind)}</div>
+      <p>${esc(f.statement)}</p>
+      ${f.citations.length ? f.citations.map(c => `<div class="quote"
+        style="font-size:14px;margin:12px 0 0">“${esc(c.quote)}”
+        <span class="attr">— ${esc(c.row_id)}</span></div>`).join('') : ''}
+      <div class="chips" style="margin-top:12px">${f.grounded_in
+        .map(g => `<span class="chip">${esc(g.replace('syn:t:', '').replace('syn:case:', ''))}</span>`)
+        .join('')}</div></div>`).join('');
+}
+
+function peopleView() {
+  return `<div class="note">Reading across a row instead of down a column: one person's whole
+    account, and where it pulls against itself.</div><div class="grid2">` +
+    DATA.cases.map(c => {
+      const r = rowOf(c.row_id) || {};
+      return `<div class="find"><div class="kind">${esc(r.display_name || c.row_id)}</div>
+        <p class="muted" style="font-size:13px">${esc(r.ui_statement || '')}</p>
+        <p>${esc(c.through_line)}</p>
+        ${c.internal_tensions.length ? `<div class="block"><h3>Tensions in their own account</h3>` +
+          c.internal_tensions.map(t => `<div class="item conflict">
+            <div class="stmt">${esc(t.statement)}</div>
+            ${t.positions.map(p => `<div class="pos"><div class="n">${esc(p.stance)}</div>
+              <div>${esc(p.gist)}</div></div>`).join('')}</div>`).join('') + `</div>` : ''}
+        ${c.distinctive.length ? `<div class="block"><h3>Only this person</h3>
+          <ul class="plain">${c.distinctive.map(d => `<li>${esc(d)}</li>`).join('')}</ul></div>` : ''}
+      </div>`;
+    }).join('') + `</div>`;
+}
+
+/* ---------- bootstrap ----------
+   Runs LAST on purpose. With data.js present, start() is called synchronously during
+   script evaluation, so every const above must already be initialized. Placing this at
+   the top would throw a temporal-dead-zone error only on the file:// path.
+
+   1. ui/data.js, written by synth-pass — works opening the page straight off disk,
+      because a <script src> is not subject to the CORS rules that block fetch on file://
+   2. the raw JSON, when the repo is served over HTTP
+   3. the drop zone, if neither is there yet                                            */
+if (window.SYNTHESIS) {
+  start(window.SYNTHESIS);
+} else {
+  fetch('../out/synthesis.json')
+    .then(r => r.ok ? r.json() : Promise.reject(new Error('not served')))
+    .then(start)
+    .catch(() => show('Run `uv run synthesize` first, or drop out/synthesis.json here.'));
+}
+</script>
+</body>
+</html>

@@ -20,7 +20,8 @@ from context_pass.corpus import Corpus, normalize
 from context_pass.models import (
     Evidence,
     ExpertPass,
-    SectionPass,
+    SectionQuestions,
+    SectionThemes,
     UnitExtractBatch,
 )
 
@@ -103,7 +104,45 @@ def question_key(text: str) -> str:
     return "".join(ch for ch in normalize(text) if ch.isalnum() or ch.isspace()).strip()
 
 
-def _dedup_validator(ctx: RunContext[Deps], output: SectionPass) -> SectionPass:
+def _timestamp_validator(ctx: RunContext[Deps], output: SectionQuestions) -> SectionQuestions:
+    """Every answer_timestamp must be a real interviewee turn.
+
+    This is the join key a later stage uses to attach transcript text to a question. An
+    invented or mistyped timestamp silently detaches an answer from its question three
+    stages downstream, so it is caught here, where it is created and correctable.
+    """
+    problems: list[str] = []
+    for question in output.questions:
+        for asking in question.asked_of:
+            if asking.answer_timestamp is None:
+                continue
+            unit = next(
+                (
+                    u
+                    for u in ctx.deps.corpus.units
+                    if u.expert_slug == asking.expert_slug
+                    and u.section_slug == (output.section_slug or u.section_slug)
+                ),
+                None,
+            )
+            if unit is None:
+                continue
+            stamps = {t.timestamp for t in unit.turns if t.is_expert}
+            if asking.answer_timestamp not in stamps:
+                problems.append(
+                    f"{question.question_id}/{asking.expert_slug}: answer_timestamp "
+                    f"{asking.answer_timestamp} is not an interviewee turn in "
+                    f"{unit.rel_path}. Copy it exactly from the extract, or use null."
+                )
+    if problems:
+        raise ModelRetry(
+            "These answer timestamps do not point at a real interviewee turn:\n- "
+            + "\n- ".join(problems[:12])
+        )
+    return output
+
+
+def _dedup_validator(ctx: RunContext[Deps], output: SectionQuestions) -> SectionQuestions:
     """Catch questions the model should have merged but didn't.
 
     Where to merge is a judgement call the model makes, but two questions whose text
@@ -155,15 +194,22 @@ def build_agents(
         name="expert",
         **common,
     )
-    section = Agent(
-        output_type=SectionPass,
-        instructions=prompts.SECTION_INSTRUCTIONS,
-        name="section",
+    question = Agent(
+        output_type=SectionQuestions,
+        instructions=prompts.QUESTION_INSTRUCTIONS,
+        name="question",
+        **common,
+    )
+    theme = Agent(
+        output_type=SectionThemes,
+        instructions=prompts.THEME_INSTRUCTIONS,
+        name="theme",
         **common,
     )
 
-    for agent in (extract, expert, section):
+    for agent in (extract, expert, question, theme):
         agent.output_validator(_evidence_validator)
-    section.output_validator(_dedup_validator)
+    question.output_validator(_dedup_validator)
+    question.output_validator(_timestamp_validator)
 
-    return {"extract": extract, "expert": expert, "section": section}
+    return {"extract": extract, "expert": expert, "question": question, "theme": theme}
