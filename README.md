@@ -41,6 +41,11 @@ a column to compare people, *across* a row to understand one.
    longer answers. Nothing may assume "it all fits."
 3. **The only shared structure is sections containing question/answer turns.** No shared
    schema, no shared question list. The framework has to be derived from the data.
+4. **All questions are equally important.** Nothing tells me which parts of the interview
+   matter most, so nothing is weighted, ranked, or dropped — every question becomes a column
+   and every column gets the same treatment. This is a limitation, not a principle: with a
+   research brief (roadmap #1) the framework could carry priority, and the synthesis could
+   spend its effort where the study actually needs answers.
 
 ---
 
@@ -206,14 +211,9 @@ Future Agentic Tools benefit from this data set. Other agentic processes can tak
 
 ### 1. Complex vs. simple to explain
 
-Chose explainable almost every time.
-
-| Chose | Over | Why |
-|---|---|---|
-| Python rule for grouping questions | A clustering model | One sentence to explain, free, auditable |
-| Verbatim cells | Model-written summaries | At 38 words a "summary" is a paraphrase |
-| SQLite | A vector store | You can read the query and predict the result |
-| One code per turn | Multi-label with confidences | Simple table, simple evaluation |
+Chose explainable almost every time. The clearest case is the thread rule above — a model
+could group those questions and would probably do better on messy data, but then "why is this
+question in this column?" answers to "the model decided," and nobody can check it.
 
 Accepted complexity once: the three-level matrix. The data genuinely has three.
 
@@ -354,6 +354,43 @@ It also closes a gap I can't otherwise close. Every check in this system verifie
 is *real* and *correctly attributed*. Nothing verifies that the **inference** drawn from it is
 sound — a genuine quote can support a claim it doesn't actually make, and no validator will
 catch that. Expert grading is the only mechanism here that would.
+
+**7. Score experts, so responses can be weighted** — today every interviewee counts the same
+(assumption #4), which is wrong in an obvious way: someone who ran the platform for six years
+and someone who evaluated it once are not equal evidence about it. Two kinds of signal, and
+they're different:
+
+- **Coherence** — measurable from what's already here. Does a person contradict themselves
+  across the matrix? `CaseSynthesis.internal_tensions` already finds those. Do they hedge?
+  `stated_limits` already records it. Do they give numbers or generalities? Word counts and
+  scale markers are in the data. None of that needs new interviews.
+- **Objective expertise** — tenure, org scale, and crucially whether they *run* the platform
+  today, ran it at a former employer, or only evaluated it. `platform_experience.relationship`
+  already carries exactly this, per platform.
+
+The hard part isn't computing it, it's what to do with it. A single credibility score is the
+thing pass 1 deliberately refuses to produce, because it launders a judgement the reader should
+make and manufactures precision the transcripts don't support. So the useful version is
+narrower: **weight per topic, not per person.** Someone can be the strongest voice on
+implementation and the weakest on pricing. That means a conflict could say *"these two disagree,
+and one of them runs the thing"* — which is a far more useful sentence than "these two
+disagree."
+
+**8. An executive summary answering the study's actual questions** — the output today is
+organised by what was *asked*. A reader usually arrives with what they *need to know*, which is
+a different and shorter list. This step takes the key questions a study set out to answer, walks
+the findings and column syntheses against them, and writes the answer — with the same citation
+discipline as everything else, so each line traces to the cells behind it.
+
+Three things make it more than a summarizer:
+
+- It must say **"the interviews don't answer this"** when they don't. With 45 of 76 questions
+  having a single respondent, that will happen, and it's the most valuable thing it can report.
+- It should say how *well* each question is answered — how many people, how directly, how much
+  they conflict. All of that is already computed.
+- It depends on knowing the key questions, which means it depends on roadmap #1. Without a
+  brief there's nothing to answer *against*, and it degrades into the summary this project
+  exists to avoid.
 
 ---
 
