@@ -2,7 +2,7 @@
   "run": {
     "schema_version": "1.0",
     "status": "complete",
-    "generated_at": "2026-09-09T21:57:29.176420Z",
+    "generated_at": "2026-09-09T22:35:18.069646Z",
     "model": "anthropic:claude-opus-5",
     "corpus_digest": "70c60b98ee5112fda0c070a72138f6ec69a81c8318d57cd7a53bf1aad5cf25fe",
     "codebook_digest": "9f757714274331ae1571bb985c05ff5d7f54e3855f98f6c87370e28656cbc8e6",
@@ -11,7 +11,7 @@
       "case": "3bcdd4a144b5a5b5fe2f108ddacd00c2b69b5e31a9ec61c5f71da66dc4cbced1",
       "findings": "4e6836136e78b7e5a57186239221de671eae0f233e4cf3d3fb5d8088706f32b7"
     },
-    "git_sha": "da9b3b3cf31cf8bc8d51d5f3aeb53b39506720e9",
+    "git_sha": "23a9353c566d7e65baeca9744a9bc2d6a99b5e28",
     "usage": [
       {
         "stage": "column",

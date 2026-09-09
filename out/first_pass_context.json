@@ -2,7 +2,7 @@
   "run": {
     "schema_version": "1.0",
     "status": "complete",
-    "generated_at": "2026-09-09T21:57:20.455735Z",
+    "generated_at": "2026-09-09T22:35:09.154398Z",
     "model": "anthropic:claude-opus-5",
     "model_settings": {
       "max_tokens": 16000,
@@ -12,7 +12,7 @@
     "corpus_digest": "70c60b98ee5112fda0c070a72138f6ec69a81c8318d57cd7a53bf1aad5cf25fe",
     "prompt_digest": "1132e0aeb333ae6e1bc29b4afd4658f41f2045e55981565522e81005ff7f4df5",
     "schema_digest": "a97fb527a3f63b7a31b28f880ba275e10210dbaeb629b8bddf34648a54605678",
-    "git_sha": "da9b3b3cf31cf8bc8d51d5f3aeb53b39506720e9",
+    "git_sha": "23a9353c566d7e65baeca9744a9bc2d6a99b5e28",
     "roster": [
       "expert-1",
       "expert-2",
@@ -220,7 +220,7 @@
       }
     ],
     "total_cost_usd": null,
-    "wall_clock_s": 2.96,
+    "wall_clock_s": 3.14,
     "warnings": []
   },
   "interviewees": [

@@ -7,20 +7,8 @@ Asking an LLM to "summarize these interviews" gives you something fluent, confid
 unverifiable. This finds agreement and conflict instead of asserting them, and every claim
 carries a verbatim quote from a named person.
 
----
-
-## Where this is
-
-| | |
-|---|---|
-| **Solid** — defined, tested, and I'd defend the design | The three-pass split · verbatim citation and its validators · the coding step · the framework matrix and how it's charted · caching and cost control · scaling design |
-| **Working, but the shape may change** | The thread heuristic (one rule, unvalidated against messy data) · what a "finding" should be · which grains get synthesized · the SQLite schema (fine for one workspace, not for many) |
-| **Early — sketched, not solved** | The UI (a prototype, not a product) · evals (architecture is ready, sets don't exist) · anything past ~10 interviewees · integration with the interviewer · turning findings into documents |
-
-The honest summary: **the analysis pipeline is the finished part.** It runs end to end, every
-claim is cited and checked, and the design decisions have reasons I can defend. What surrounds
-it — how you look at the output, how you know it's good, how it plugs into a larger system — is
-sketched well enough to argue about, not built.
+**Start here:** [`example.py`](example.py) runs the whole thing and shows what consuming the
+output looks like · [`DATA_MODEL.md`](DATA_MODEL.md) describes every artifact it produces.
 
 ---
 
@@ -91,6 +79,9 @@ structured/<section>/<person>.md
 Two supporting directories: `out/stages/` holds every individual call's result so a crash never
 costs earlier work, and `out/.cache/` is content-addressed by model, prompt, schema and payload
 — which is why an unchanged rerun makes zero API calls.
+
+**→ [`DATA_MODEL.md`](DATA_MODEL.md)** describes every one of these artifacts: the models, the
+SQLite schema, the id scheme, and what's guaranteed — with real examples throughout.
 
 Pass 1 answers *who* and *what was asked* — nothing else. Interpretation is pass 3's job, where
 the matrix is there to check it against.
@@ -376,6 +367,16 @@ uv run synthesize --dry-run             # the plan and the cost, spending nothin
 uv run pytest                           # 119 tests, no tokens
 ```
 
+**[`example.py`](example.py)** is the annotated version of the same thing — it imports the
+package, runs the four stages, then shows what consuming the typed output looks like. Start
+there if you want to use this as a library:
+
+```bash
+uv run python example.py --dry-run     # the plan and the cost, spending nothing
+uv run python example.py               # run it, then print who was interviewed,
+                                       # where they disagree, and the findings
+```
+
 Each pass also runs alone (`context-pass`, `code-pass`, `synth-pass`) and takes `--dry-run`.
 Results cache per stage, so a rerun after a prompt change re-runs only what it affected.
 
@@ -400,8 +401,11 @@ src/interview_synthesis/
   synthesis/             pass 3 — framework matrix + interpretation
   ui/index.html          the report template, shipped in the wheel
 
+example.py                annotated end-to-end run, and how to read the output
+DATA_MODEL.md             every artifact: models, SQLite schema, id scheme, guarantees
+
 raw/  structured/  out/   the workspace: transcripts in, artifacts out
-tests/                    119 tests, none spend a token
+tests/                    124 tests, none spend a token
 ```
 
 ```bash
@@ -409,7 +413,47 @@ uv build                          # wheel + sdist
 pip install dist/*.whl            # then run `interview-synthesis` anywhere
 ```
 
+**[`example.py`](example.py)** — imports the package, runs the four stages, then queries the
+typed output. The fastest way to see what this produces.
+
+**[`DATA_MODEL.md`](DATA_MODEL.md)** — what each pass produces, how it's stored, and how the
+pieces join up, with real examples. Read it if you want to consume the output yourself.
+
 Design notes and trade-offs per pass:
 [pass 1](src/interview_synthesis/context/README.md) ·
 [pass 2](src/interview_synthesis/coding/README.md) ·
 [pass 3](src/interview_synthesis/synthesis/README.md)
+
+---
+
+## Where this is
+
+| | |
+|---|---|
+| **Solid** — defined, tested, and I'd defend the design | The three-pass split · verbatim citation and its validators · the coding step · the framework matrix and how it's charted · caching and cost control · scaling design |
+| **Working, but the shape may change** | **The data model** — see below · the thread heuristic (one rule, unvalidated against messy data) · what a "finding" should be · which grains get synthesized · the SQLite schema (fine for one workspace, not for many) |
+| **Early — sketched, not solved** | The UI (a prototype, not a product) · evals (architecture is ready, sets don't exist) · anything past ~10 interviewees · integration with the interviewer · turning findings into documents |
+
+**The data model is a work in progress and will change.** [`DATA_MODEL.md`](DATA_MODEL.md)
+describes what exists today, and it works — but it was shaped by one corpus of three interviews
+and a specific interviewer. Expect it to move.
+
+The reason is worth being explicit about: **agentic approaches evolve as feedback loops close.**
+Right now this system runs one direction — transcripts arrive, analysis comes out, nobody tells
+it whether the analysis was any good. Every loop on the roadmap changes what the data has to
+carry:
+
+- **Interviewer integration** (roadmap #1) means the framework gets agreed up front rather than
+  derived per run, which turns the question list from an output into a versioned input.
+- **Evals** (#2) need somewhere to put a graded judgement against a stage's output — there is
+  no home for that today.
+- **Expert grading** (#6) adds a per-cell verdict from the person who said the words, which is
+  a new relation the schema doesn't have.
+
+None of those are fields I can usefully add now. They're the shape the model takes once the
+loops exist, and guessing at them would be building for an argument I haven't had yet.
+
+The honest summary: **the analysis pipeline is the finished part.** It runs end to end, every
+claim is cited and checked, and the design decisions have reasons I can defend. What surrounds
+it — how you look at the output, how you know it's good, how it plugs into a larger system — is
+sketched well enough to argue about, not built.
