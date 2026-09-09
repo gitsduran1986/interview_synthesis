@@ -1,7 +1,7 @@
 # `coding` — design notes and trade-offs
 
 Implementation detail for pass 2, text coding. For what it is and how to run it, see the
-[root README](../README.md).
+[root README](../../../README.md).
 
 ---
 

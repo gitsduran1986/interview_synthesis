@@ -9,7 +9,22 @@ carries a verbatim quote from a named person.
 
 ---
 
-## Method
+## Where this is
+
+| | |
+|---|---|
+| **Solid** — defined, tested, and I'd defend the design | The three-pass split · verbatim citation and its validators · the coding step · the framework matrix and how it's charted · caching and cost control · scaling design |
+| **Working, but the shape may change** | The thread heuristic (one rule, unvalidated against messy data) · what a "finding" should be · which grains get synthesized · the SQLite schema (fine for one workspace, not for many) |
+| **Early — sketched, not solved** | The UI (a prototype, not a product) · evals (architecture is ready, sets don't exist) · anything past ~10 interviewees · integration with the interviewer · turning findings into documents |
+
+The honest summary: **the analysis pipeline is the finished part.** It runs end to end, every
+claim is cited and checked, and the design decisions have reasons I can defend. What surrounds
+it — how you look at the output, how you know it's good, how it plugs into a larger system — is
+sketched well enough to argue about, not built.
+
+---
+
+## Modeled After FrameWork Method
 
 Built on the [Framework Method](https://pmc.ncbi.nlm.nih.gov/articles/PMC3848812/) (Gale et
 al., 2013) — a standard approach in qualitative health research. Its seven stages end in a
@@ -43,25 +58,68 @@ a column to compare people, *across* a row to understand one.
 
 ## Pipeline
 
+Four steps. Each writes its output to disk before the next reads it, so any step can be
+re-run, inspected, or replaced on its own.
+
+| Step | In | Out | Stored as |
+|---|---|---|---|
+| **structure** | `raw/*.docx` | sectioned transcripts, every turn + speaker | `structured/<section>/<person>.md` |
+| **pass 1** `context-pass` | `structured/` | profiles + the canonical question list | `out/first_pass_context.json` |
+| **pass 2** `code-pass` | `structured/` + the codebook | every answer labelled with a question | `out/coding.db` (SQLite) + `out/coding.jsonl` |
+| **pass 3** `synth-pass` | `out/coding.db` | the matrix, then agreement/conflict/findings | `out/synthesis.json` + tables in `out/coding.db` → `out/report.html` |
+
 ```
-raw/*.docx ──▶ structured/<section>/<person>.md
-                   │
-                   ├─▶ PASS 1  context-pass   profiles + the canonical question list
-                   ├─▶ PASS 2  code-pass      each answer → the question it addresses
-                   └─▶ PASS 3  synth-pass     matrix (Python) → agreement, conflict, findings
-                   ▼
-              out/report.html
+raw/*.docx
+    │  structure — stdlib only, no model
+    ▼
+structured/<section>/<person>.md
+    │
+    ├─▶ PASS 1  who are these people, and what were they asked
+    │      out/first_pass_context.json   (117 KB)
+    │      └─ projected to out/codebook.json (39 KB) — the only thing pass 2 sees
+    │
+    ├─▶ PASS 2  which question does each answer address
+    │      out/coding.db      one row per turn, one code per answer
+    │      out/coding.jsonl   the same rows, flat and diffable
+    │
+    └─▶ PASS 3  chart the matrix (Python), then interpret it (model)
+           out/synthesis.json          (583 KB) the whole document
+           out/coding.db               matrix + synthesis tables, queryable
+           out/report.html             (356 KB) self-contained, opens anywhere
 ```
 
-Pass 1 answers *who* and *what was asked* — nothing else. Interpretation is pass 3's job,
-where the matrix is there to check it against.
+Two supporting directories: `out/stages/` holds every individual call's result so a crash never
+costs earlier work, and `out/.cache/` is content-addressed by model, prompt, schema and payload
+— which is why an unchanged rerun makes zero API calls.
+
+Pass 1 answers *who* and *what was asked* — nothing else. Interpretation is pass 3's job, where
+the matrix is there to check it against.
 
 ### The matrix has three levels
 
 Rows = people, columns = the 76 questions gives a matrix **55% filled**, 45 columns with one
-respondent. That's an artifact: the questions are conversational threads, not topics — one TCO
-question all three answered, then four follow-ups with one person. Grouping each question under
-the nearest preceding one that ≥2 people answered (a Python rule, no model):
+respondent. That looks too sparse to compare anything — but it's an artifact of how the
+interviewer behaves, not of what people said.
+
+**How a thread is derived.** One rule, in Python, no model:
+
+> Walk the questions in order within a section. A question **two or more people answered opens
+> a thread**. Every question after it that only **one** person answered joins that thread.
+
+It encodes a single observation: this interviewer asks everyone the main question, then drills
+into whoever gives it material. So a one-respondent question is almost never a new topic — it's
+a follow-up on the one that just opened. A real thread:
+
+```
+col-02-03   ANCHOR  q-02-03  3 resp  "Were those goals part of a broader strategic initiative?"
+              +     q-02-04  1 resp  "You mentioned GRSD — could you clarify which module?"
+              +     q-02-05  1 resp  "What business needs drove the expansion into asset mgmt?"
+              +     q-02-06  1 resp  "Was that expansion part of the original scope?"
+              +     q-02-07  1 resp  "What makes a custom ITSM the right fit now?"
+```
+
+One topic, drilled into with one person. As five columns that's one comparable and four empty.
+As a thread it's one column all three answered, with the probes nested inside.
 
 | Level | Columns | Filled | Comparable |
 |---|---|---|---|
@@ -69,7 +127,15 @@ the nearest preceding one that ≥2 people answered (a Python rule, no model):
 | **Thread** | **30** | **93%** | **all 30** |
 | Question | 76 | 55% | 24 of 76 |
 
-Threads are what the synthesis runs on. Questions stay as leaves.
+A thread's respondent count is the **union** of everyone who answered any question in it.
+Threads are what the synthesis runs on; questions stay as leaves so you can always reach the
+exact probe.
+
+**Where it would break:** the rule is ordering-based, not meaning-based. If the interviewer
+circled back to an earlier topic after moving on, the question would attach to whichever thread
+was open, not the one it belongs to. Didn't happen here; I didn't test for it. The grouping is
+stored in `matrix_column_question`, so a model-based version could be diffed against it question
+by question — which is how I'd want to evaluate one.
 
 ### What comes out
 
@@ -89,6 +155,59 @@ Threads are what the synthesis runs on. Questions stay as leaves.
 > programme; the others ran deliberately IT-led projects.
 
 Not just "they disagree" — what the disagreement is *about*, and why both are right in context.
+
+### The intermediate data store
+
+Everything between the transcripts and the report lives in one SQLite file, `out/coding.db`.
+It's there because the consumer is a downstream agent, and one `sqlite3 out/coding.db "SELECT
+..."` beats loading a 583 KB JSON blob into a context window.
+
+| Table | Rows | What it holds |
+|---|---|---|
+| `text` | 291 | every turn, both speakers, verbatim |
+| `question` | 76 | the canonical question list from pass 1 |
+| `coding` | 129 | **the coded responses** — one row per answered turn |
+| `uncoded` | 18 | turns with no code, and the reason why |
+| `matrix_cell` | 339 | the charted matrix, all three grains |
+| `synthesis_object` | 51 | column/case/finding syntheses |
+| `unit` `interview` `coding_run` `matrix_column` `synthesis_citation` | | provenance and joins |
+
+**A coded response**, which is the core row of the whole system:
+
+```
+text_id       bfc9a1f76594ea82
+question_id   q-06-09                          → question.canonical_question
+interview_id  expert-1                         → interview
+section_id    06-cost-total-cost-of-ownership
+unit_id       structured/06-cost-.../expert-1.md   → the file it came from
+turn_index    17                               → the exact turn in that file
+word_count    25
+raw_text      "Yes, there was role separation. We had read-only roles, approvers,
+               ITIL roles, admins, and standard users."
+method        anchor                           → how this code was decided
+is_disfluent  0                                → process talk? then unquotable
+```
+
+Three things make that row useful rather than just stored:
+
+- **`text_id` is stable** — `sha256(unit_id + turn_index)`, not the text and not a timestamp.
+  Fix a typo in a transcript and the row keeps its identity; `text_sha` changes instead, so an
+  edit is detectable without orphaning the coding.
+- **`method` records how it was decided** (`anchor`, `span`, `model`, `manual`), so a consumer
+  can always separate what pass 1 claimed from what was inferred from what a model judged.
+
+Two views sit on top: `coded_text` returns the five columns the deliverable promises, and
+`matrix` returns the grid with topic labels joined in.
+
+```sql
+SELECT raw_text FROM coded_text WHERE canonical_question_id = 'q-06-09';
+SELECT expert, text FROM matrix WHERE grain='thread' AND column_id='col-06-01';
+```
+
+`out/coding.jsonl` carries the same coded rows flat, so a re-run's changes are reviewable in a
+diff — the `.db` is binary and derived, and is gitignored.
+
+Future Agentic Tools benefit from this data set. Other agentic processes can take advantage of this data for creating slides, reports or other outputs.  
 
 ---
 
@@ -130,9 +249,10 @@ stages**, each independently cacheable and checkable.
 - 119 tests that cannot reach a real model (`ALLOW_MODEL_REQUESTS = False`).
 - Per-stage caching: fixing one prompt late in the build re-ran one stage, $0.47 not $5.38.
 
-**What it caught:** a bare `"Yes."` answering *"Confirmation: TCO ended up 20-30% higher?"* is
-verbatim expert speech and passes every check — but the substance came from the interviewer.
-Perfectly cited, still a fabrication. Pass 3 marks those cells unquotable.
+**What it caught:** a bare `"Yes."` answering *"So the total cost of ownership ended up roughly
+20-30% higher than you expected?"* is verbatim expert speech and passes every check — but the
+number came from the interviewer, not the expert. Perfectly cited, still a fabrication. Pass 3
+flags those 7 cells unquotable, and a validator rejects any attempt to cite one.
 
 **And it caught dead weight.** Once question extraction and theme generation were separate
 stages, it was obvious nothing read the themes — pass 3 does that job better. Deleting them cut
@@ -158,44 +278,59 @@ assert prompt size holds.
 grows with the roster and binds around 8–10 people per column. Fix is to group positions by
 stance.
 
----
-
-## The UI
+### 5. The UI
 
 ```
-                     expert-1              expert-2             expert-3
- ── Cost & TCO ───────────────────────────────────────────────────────────────
- TCO vs budget       Ran 20-30% over,      15% over, driven     Within ~5% of
-                     all of it internal    by SAP integration   budget; added
-                     validation effort     work                 agent seats      ⚡ conflict
+                     expert-1             expert-2             expert-3
+ ── Cost & TCO ──────────────────────────────────────────────────────────────
+ Licensing           Unanticipated        AIOps and mobile     Only the Project
+ surprises           volume of business   Digital Workplace    module, and that
+                     users needing test   were separate SKUs   was a later
+                     access                                    choice            ⚡ conflict
 
- Renewal trend       3-5%, negotiated      4-6%, calls it       6-8%, "more than
-                     down at scale         manageable           I'd like"        ⚡ conflict
+ Per-vendor cost     not asked            Rates BMC well on    Freshservice a 7,
+ ratings                                  both cost and        adequate for
+                                          capability           their scale       ◐ 2 of 3
 
- Per-user pricing    ~$100/user/mo as      $60 blended vs       ~$40/agent vs
-                     an illustration       $160 ServiceNow      $150 ServiceNow  ◐ 2 of 3
+ ── Satisfaction ────────────────────────────────────────────────────────────
+ Biggest             Steep learning       Weaknesses are       Automation
+ weaknesses          curve, complex       largely external     builder gets
+                     resource-hungry      to the product       clunky as
+                     implementations                           complexity rises  ⚡ conflict
 ```
 
-Each cell is a one-line reading of what that person said — not written for the grid, it's the
-`gist` the synthesis already produced. Hover for their actual words. Empty cells say *why*
-they're empty. Click a row for the full comparison: canonical quote, conflicts before
-agreements, every quote linking to its source turn.
+Five decisions, each with a cost:
 
-Also: findings feed, per-person view, and the underlying transcript.
+| Decision | Instead of | Trade |
+|---|---|---|
+| **Cells carry the synthesis `gist`** | A word count, or the raw answer | You can scan a row and see the disagreement. Costs nothing — the gist already existed — but it is a *reading*, so the words are one hover away, never replaced |
+| **Topics as rows, people as columns** | The paper's orientation | 30 topics fit down a page; 30 columns don't. Diverges from the Framework Method's layout, not its logic |
+| **Empty cells state *why*** | Leaving them blank | A blank square reads as "no opinion." Costs grid space to say "not asked" |
+| **Conflicts before agreements** | Neutral ordering | Conflict is the thing you cannot get from reading one interview. Risks over-weighting disagreement in a corpus that mostly agrees |
+| **One self-contained HTML file** | A served app | Opens anywhere, no server, no upload, survives being emailed. 356 KB, and every re-run rewrites the whole thing |
 
-`uv run synthesize` writes `out/report.html` — one self-contained file, no server, no upload.
+Click a row for the full comparison — canonical quote, conflicts, every quote linking to its
+source turn. Plus a findings feed, a per-person view, and the transcript underneath.
+
+`uv run synthesize` writes `out/report.html`.
+
+**What it is not:** a product. It exists to prove the data model is navigable — that every
+object is addressable and every claim walks back to a transcript turn. Those ids are stable
+*within* a run but not *across* re-runs, which is the first thing roadmap #5 has to fix.
 
 ---
 
 ## Roadmap
 
-**1. Integration with the interviewer**
+**1. Integration with the larger pipeline**
 - *Feedback loop* — the pipeline already knows which questions have thin coverage, where people
   conflict, and what's single-source. Feed that back and each interview becomes a targeted
   instrument instead of a fixed script.
 - *More deductive synthesis* — the framework is currently derived bottom-up because there was no
   brief. Agreed up front, synthesis can measure coverage against a known frame. Also fixes
   framework drift: a frozen, versioned codebook is what makes comparison over time possible.
+- *What's Important* — No where in this system is there a measure of how does this answer the customers question. 
+   Integration and passing context from Initiatial questions to interview to synthesize can create valuable context
 
 **2. Evals** — the architecture is built for it; the eval sets don't exist yet. Gold-standard
 sets per stage, agreement metrics (pass 2 can already run two independent strategies — they
@@ -209,6 +344,25 @@ make it safe.
 find what actually breaks; fix the output ceiling; Batch API halves the cost; cheaper models for
 the mechanical stages; a UI that opens on "the 10 topics where people disagree most" rather than
 a 1,000-row grid.
+
+**5. An output UI that fits the existing UX** — `out/report.html` is a prototype I built to
+prove the data model is navigable, not a product. The real version has to live inside whatever
+interface people already use, which changes the shape of the problem: the synthesis becomes an
+API rather than a document, objects need to survive being embedded in someone else's page, and
+the ids have to be URL-stable across re-runs. They are not today — pass 1 numbers questions by
+ordinal, so adding one question shifts every id after it and any saved link breaks. Content-
+derived ids are the prerequisite for this whole item.
+
+**6. Let experts grade their own synthesis** — show each interviewee how the system represented
+them and let them mark it right or wrong. This is the highest-quality eval signal available and
+nobody else can produce it: the person who said the words is the only one who knows whether the
+reading of them is fair. Concretely: send each expert their own row — the cells, the positions
+attributed to them, the quotes chosen — and collect a per-cell judgement.
+
+It also closes a gap I can't otherwise close. Every check in this system verifies that a quote
+is *real* and *correctly attributed*. Nothing verifies that the **inference** drawn from it is
+sound — a genuine quote can support a claim it doesn't actually make, and no validator will
+catch that. Expert grading is the only mechanism here that would.
 
 ---
 

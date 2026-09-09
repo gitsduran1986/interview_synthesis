@@ -1,7 +1,7 @@
 # `context_pass` — design notes and trade-offs
 
 Implementation detail for the first-pass context extraction. For what it is and how to run
-it, see the [root README](../README.md).
+it, see the [root README](../../../README.md).
 
 This document exists because most of the decisions here traded one real thing away for
 another, and the reasoning is not recoverable from the code.

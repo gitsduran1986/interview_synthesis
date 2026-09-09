@@ -1,7 +1,7 @@
 # `synthesis` — design notes and trade-offs
 
 Implementation detail for pass 3, the framework matrix and its interpretation. For what it
-is and how to run it, see the [root README](../README.md).
+is and how to run it, see the [root README](../../../README.md).
 
 This pass implements **stages 6 and 7** of the Gale et al. Framework Method. Passes 1 and 2
 had already covered stages 1–5: transcription, familiarisation, framework development (pass
@@ -84,11 +84,12 @@ nothing back.
 
 ### 3. The assent guard — the failure this pass most needed to avoid
 
-Five cells are a bare `"Yes."`, answering a *Confirmation:* question where the interviewer
-supplied the substance:
+Seven cells are bare assent — `"Yes."`, `"Yes, agreed."`, `"Yeah, well said."` — answering a
+question where the interviewer supplied the substance:
 
 ```
-q-06-04  "Confirmation: TCO ended up roughly 20-30% higher than expected..."  ->  "Yes."
+q-06-04  "So the total cost of ownership ended up roughly 20-30% higher
+          than you expected?"                                         ->  "Yes."
 ```
 
 That `"Yes."` is verbatim expert speech and passes every verbatim check. Quoting it as
