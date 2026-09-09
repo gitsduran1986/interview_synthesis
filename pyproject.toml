@@ -1,0 +1,28 @@
+[project]
+name = "interview-synthesis"
+version = "0.1.0"
+description = "First-pass context extraction over structured expert interview transcripts."
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic-ai-slim[anthropic]>=1.0.0",
+]
+
+[project.scripts]
+context-pass = "context_pass.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["context_pass"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

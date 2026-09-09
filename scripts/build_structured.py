@@ -13,6 +13,7 @@ Usage: python3 scripts/build_structured.py
 
 import re
 import shutil
+import sys
 import zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
@@ -22,20 +23,12 @@ ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "raw"
 OUT = ROOT / "structured"
 
-# Canonical section order. Keys are the heading text as it appears in the docx
-# (lowercased); "current * environment" is matched separately because the
-# platform name varies by interviewee.
-SECTIONS = [
-    ("01-interview-introduction", "Interview Introduction"),
-    ("02-current-environment", "Current Environment"),
-    ("03-vendor-selection-decision-criteria", "Vendor Selection & Decision Criteria"),
-    ("04-competitive-comparison", "Competitive Comparison"),
-    ("05-implementation-integration", "Implementation & Integration"),
-    ("06-cost-total-cost-of-ownership", "Cost & Total Cost of Ownership"),
-    ("07-platform-satisfaction-loyalty", "Platform Satisfaction & Loyalty"),
-    ("08-switching-dynamics", "Switching Dynamics"),
-    ("09-interview-wrap-up", "Interview Wrap-up"),
-]
+sys.path.insert(0, str(ROOT))
+from context_pass.sections import SECTIONS  # noqa: E402  (stdlib-only module)
+
+# Section registry lives in context_pass/sections.py so the builder, the context pass,
+# and the downstream evaluator all agree on slugs and titles. "current * environment" is
+# matched separately because the platform name varies by interviewee.
 BY_HEADING = {title.lower(): slug for slug, title in SECTIONS}
 CURRENT_ENV = re.compile(r"^current\s+(.*?)\s+environment$", re.I)
 

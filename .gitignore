@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# context_pass run artifacts
+out/stages/
+out/.cache/
+.DS_Store
